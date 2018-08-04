@@ -1,3 +1,12 @@
+*.htm
+*.html
+*.js
+*.css
+**/out
+**/SpryAssets
+**/templates
+*.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
