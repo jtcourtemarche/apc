@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import urllib2, json, re, webbrowser, os
-import numpy as np
-from urllib import urlretrieve
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
@@ -35,7 +33,7 @@ class APCScraper:
 			raise ValueError("Not a valid url!")
 
 		if (self.data.getcode() != 200):
-			raise ValueError('Error: '+str(self.data.getcode()))
+			raise ValueError('Error: {0!s}'.format(self.data.getcode()))
 		#  ------------------------------------------------------>
 
 		html = self.data.read()
@@ -55,11 +53,10 @@ class APCScraper:
 		content = re.sub(r"[\n\t]*", "", content)
 
 		if 'View Runtime Graph' in content:
-			self.part_number = self.soup.find(class_='part-number').get_text()
-			scrot_url = "http://www.apc.com/products/runtimegraph/runtime_graph.cfm?base_sku="+self.part_number+"&chartSize=large"
+			scrot_url = "http://www.apc.com/products/runtimegraph/runtime_graph.cfm?base_sku={0}&chartSize=large".format(self.page['Meta']['part_number'])
 
 			#webbrowser.open(scrot_url)
-			content = "<img class='display-image-1_5' src='images/"+self.part_number+"-runtime.png'>"
+			content = "<img class='display-image-1_5' src='images/{0}-runtime.png'>".format(self.page['Meta']['part_number'])
 
 		# Handle efficiency graphs
 		#if 'View Efficiency Graph' in content:	
@@ -74,8 +71,6 @@ class APCScraper:
 
 			self.page['Headers'].append(header)
 
-		print page_div.next_elements
-
 		for list_item in page_div.find_all(class_='col-md-12 no-gutter'):
 			for title in list_item.find(class_='col-md-3 bold'):
 				# Skip over this option, unecessarily difficult to retrieve this info because it links to
@@ -86,12 +81,12 @@ class APCScraper:
 				self.page['Content'][title] = self.filter_content(list_item, title)
 		
 		# Get image
-		self.page['Meta']['image'] = 'http:' + self.soup.find_all(class_='img-responsive')[0].get('src')
+		self.page['Meta']['image'] = 'http:{0}'.format(self.soup.find_all(class_='img-responsive')[0].get('src'))
 
 		output = json.dumps(self.page, sort_keys=True, indent=4)
 		
 		# Write provides a JSON data sheet
-		if write == True:
+		if write:
 			with open('output.json', 'w') as f:
 				print 'Writing to output.json'
 				f.write(output)
@@ -108,34 +103,29 @@ class APCScraper:
 			data = urllib2.urlopen(request)
 			
 			# Create image directory if it doesn't exist already
-			if not os.path.exists(output_dir + 'images'):
-				os.makedirs(output_dir + 'images')
+			if not os.path.exists('{0}images'.format(output_dir)):
+				os.makedirs('{0}images'.format(output_dir))
 
-			with open(output_dir + 'images/' + self.page['Meta']['part_number'] + '.jpg', 'wb') as img_f:
+			with open('{0}images/{1}.jpg'.format(output_dir, self.page['Meta']['part_number']), 'wb') as img_f:
 				img_f.write(data.read())
 				img_f.close()
 		except:
 			raise ValueError("Image file download failed")
 
 		# Breadcrumbs
-		breadcrumbs = []
-		for crumb in self.breadcrumbs:
-			if crumb[0] != '' and crumb[1] != '':
-				breadcrumbs.append(u"<a href='%s'>%s</a> »" % (crumb[1], crumb[0]))
-			else:
-				break
+		breadcrumbs = map(lambda x: u"<a href='{0}'>{1}</a> »".format(x[1], x[0]), self.breadcrumbs) 
 
 		self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
 
 		# Body
 		body = []
 		for key, value in self.page['Content'].iteritems():
-			body.append("<tr><td>"+key+"</td><td>"+value+"</td></tr>")
+			body.append((u"<tr><td>{0}</td><td>{1}</td></tr>").format(key, value))
 
 		bsoup = BeautifulSoup(''.join(body), 'html.parser')
 		self.page['Meta']['body'] = bsoup.prettify(formatter='html')  
 
-		with open(output_dir + self.page['Meta']['part_number']+'.htm', 'w') as t:
+		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
 			template = self.env.get_template('base.html')
 			template = template.render(
 				meta = self.page['Meta'],
