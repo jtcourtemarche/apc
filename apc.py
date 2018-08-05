@@ -2,25 +2,23 @@
 # -*- coding: utf-8 -*-
 
 import urllib2, json, re, webbrowser, os
+import numpy as np
 from urllib import urlretrieve
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
-class APCInstance(dict):
-	# Container for the current page's information
-	def __getattr__(self, item):
-		return self[item]
-
 class APCScraper:
 	# Reads url passed into class, parses data sheet as json,
 	# and applies that data, among other things, to a jinja2 template
-	def __init__(self, url):
+	def __init__(self, url, breadcrumbs=[('','')]):
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 		self.page = {
 			'Meta': dict(),
 			'Headers':[],
 			'Content': dict(),
 		}
+
+		self.breadcrumbs = breadcrumbs
 
 		self.env = Environment(
 			loader=PackageLoader('main', 'templates'),
@@ -71,10 +69,10 @@ class APCScraper:
 	def parse(self, write=False):
 		page_div = self.soup.find('div', id='techspecs')
 		for header in page_div.find_all('h4'):
-			h = header.contents
-			h = h[0].replace('&amp;', '&')
+			header = header.contents[0]
+			header = header.replace('&amp;', '&')
 
-			self.page['Headers'].append(h)
+			self.page['Headers'].append(header)
 
 		print page_div.next_elements
 
@@ -102,13 +100,9 @@ class APCScraper:
 		return output
 
 	def apply_template(self, template='templates/base.html', output_dir='out/'):
-		inst = APCInstance(self.page)
-		for key, value in self.page.iteritems():
-			inst[key] = value
-
 		# Download part image
 		try:
-			request = urllib2.Request(inst.Meta['image'], None, {
+			request = urllib2.Request(self.page['Meta']['image'], None, {
 				'User-Agent':self.user_agent
 			})
 			data = urllib2.urlopen(request)
@@ -117,25 +111,36 @@ class APCScraper:
 			if not os.path.exists(output_dir + 'images'):
 				os.makedirs(output_dir + 'images')
 
-			with open(output_dir + 'images/' + inst.Meta['part_number'] + '.jpg', 'wb') as img_f:
+			with open(output_dir + 'images/' + self.page['Meta']['part_number'] + '.jpg', 'wb') as img_f:
 				img_f.write(data.read())
 				img_f.close()
 		except:
 			raise ValueError("Image file download failed")
 
+		# Breadcrumbs
+		breadcrumbs = []
+		for crumb in self.breadcrumbs:
+			if crumb[0] != '' and crumb[1] != '':
+				breadcrumbs.append(u"<a href='%s'>%s</a> »" % (crumb[1], crumb[0]))
+			else:
+				break
+
+		self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
+
+		# Body
 		body = []
-		for key, value in inst.Content.iteritems():
+		for key, value in self.page['Content'].iteritems():
 			body.append("<tr><td>"+key+"</td><td>"+value+"</td></tr>")
 
 		bsoup = BeautifulSoup(''.join(body), 'html.parser')
-		inst.Meta['body'] = bsoup.prettify(formatter='html')  
+		self.page['Meta']['body'] = bsoup.prettify(formatter='html')  
 
-		with open(output_dir + inst.Meta['part_number']+'.htm', 'w') as t:
+		with open(output_dir + self.page['Meta']['part_number']+'.htm', 'w') as t:
 			template = self.env.get_template('base.html')
 			template = template.render(
-				meta = inst.Meta,
-				content = inst.Content,
-				headers = inst.Headers
-			)
-			t.write(template.encode('ascii', 'ignore'))
+				meta = self.page['Meta'],
+				content = self.page['Content'],
+				headers = self.page['Headers']
+			).encode('utf-8')
+			t.write(template)
 			t.close()
