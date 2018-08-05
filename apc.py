@@ -1,13 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''
-
-	APC Scanner
-	The goal of this project is to be as modular as possible while fulfilling a highly specific task.
-
-'''
-
 import urllib2, json, re, webbrowser, os
 from urllib import urlretrieve
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
@@ -146,8 +139,3 @@ class APCScraper:
 			)
 			t.write(template.encode('ascii', 'ignore'))
 			t.close()
-
-if __name__ == '__main__':
-	reader = APCScraper('http://www.apc.com/shop/us/en/products/APC-Smart-UPS-SRT-1000VA-RM-120V/P-SRT1000RMXLA')
-	reader.parse()
-	reader.apply_template()
