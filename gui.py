@@ -1,21 +1,77 @@
-import tkinter as tk
-from tkinter import ttk
-from tkinter.scrolledtext import ScrolledText
+#!/usr/bin/python
+import wx
+from apc import APCScraper
 
-root = tk.Tk()
+def run():
+	pass
 
-root.title = 'APC Scanner'
-root.geometry('800x600')
-root.resizable(0, 0)
+class MainFrame(wx.Frame):
+	def __init__(self, parent, title, res=(1280, 720)):
+		wx.Frame.__init__(self, parent, title=title, size=res, style=wx.DEFAULT_FRAME_STYLE  & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
-frame = tk.Frame(master=root, bg='#393D49')
-frame.pack(fill=tk.BOTH, expand=1)
+		self.file_menu = wx.Menu()
+		self.file_menu.Append(wx.ID_OPEN, '&Open')
 
-# Name schema:
-# 	{ name }_{ tkinter type }	
+		self.run_menu = wx.Menu()
+		self.run_menu.Append(wx.ID_NONE, '&Scan Link')
 
-main_label = tk.Label(frame, text='APC Scanner').grid(row=0, column=0)
-links_text = ScrolledText(frame).grid(row=1, column=0)
-out_listbox = tk.Listbox(frame).grid(row=0, column=1)
+		self.about_menu = wx.Menu()
+		self.about_menu.Append(wx.ID_ABOUT, '&About')
 
-root.mainloop()
+		self.menubar = wx.MenuBar()
+		self.menubar.Append(self.file_menu, '&File')
+		self.menubar.Append(self.run_menu, '&Run')
+		self.menubar.Append(self.about_menu, '&About')
+
+		self.panel = wx.Panel(self, size=res)
+
+		self.text_font = wx.Font(12, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, 'Verdana')
+		self.header_font = wx.Font(13, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, 'Verdana')
+
+		# Load logo
+		self.logo = wx.Image(
+			'images/logo.jpg',
+			wx.BITMAP_TYPE_JPEG,
+		)
+		# Convert logo to bitmap so it is renderable 
+		self.bitmap = wx.StaticBitmap(self.panel, -1, wx.BitmapFromImage(self.logo)) 
+
+		self.control_label = wx.StaticText(self.panel, label='Enter links below:', size=(800, 15), pos=(0, 75))
+		self.control_label.SetFont(self.header_font)
+
+		self.links_control = wx.TextCtrl(self.panel, style=wx.TE_MULTILINE, size=(800, res[1]/1.5-95), pos=(0,95))
+		self.links_control.SetFont(self.text_font)
+		self.links_control.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
+
+		self.crumbs_name_control = wx.TextCtrl(self.panel, style=wx.TE_MULTILINE, size=(800/2, 20), pos=(0,res[1]/1.5))
+		self.crumbs_url_control = wx.TextCtrl(self.panel, style=wx.TE_MULTILINE, size=(800/2, 20), pos=(res[0]/2,res[1]/1.5))
+
+		self.panel.SetFocus()
+
+		self.SetMenuBar(self.menubar)
+		self.Show(True)
+
+	def on_key_down(self, event):
+		if event.GetKeyCode() == 27:
+			self.Close(True)
+		elif event.GetKeyCode() == 344:
+			# This should run the program
+			for url in self.links_control.GetValue().splitlines():
+				print 'Loading APC Links'
+				scraper = APCScraper(url)
+				print 'Parsing HTML'
+				scraper.parse()
+				print 'Applying template'
+				scraper.apply_template()
+
+			pass
+		elif event.GetModifiers() == 2 and event.GetKeyCode() == 65:
+			# Select all
+			self.links_control.SelectAll()
+		else:
+			event.Skip()
+
+if __name__ == '__main__':
+	app = wx.App(False)
+	frame = MainFrame(None, 'APC Scanner')
+	app.MainLoop()

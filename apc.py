@@ -68,7 +68,7 @@ class APCScraper:
 		for header in page_div.find_all('h4'):
 			header = header.contents[0]
 			header = header.replace('&amp;', '&')
-
+		
 			self.page['Headers'].append(header)
 
 		for list_item in page_div.find_all(class_='col-md-12 no-gutter'):
