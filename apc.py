@@ -5,7 +5,7 @@ import urllib2, json, re, webbrowser, os
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
-class APCScraper:
+class APCCrawler:
 	# Reads url passed into class, parses data sheet as json,
 	# and applies that data, among other things, to a jinja2 template
 	def __init__(self, url, breadcrumbs=[('','')]):

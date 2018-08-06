@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import wx
-from apc import APCScraper
+from apc import APCCrawler
 
 def run():
 	pass
@@ -58,7 +58,7 @@ class MainFrame(wx.Frame):
 			# This should run the program
 			for url in enumerate(self.links_control.GetValue().splitlines()):
 				print '{0}/{1} Loading APC Links'.format(url[0]+1, len(self.links_control.GetValue().splitlines()))
-				scraper = APCScraper(url[1])
+				scraper = APCCrawler(url[1])
 				print 'Parsing HTML'
 				scraper.parse()
 				print 'Applying template'
@@ -72,5 +72,5 @@ class MainFrame(wx.Frame):
 
 if __name__ == '__main__':
 	app = wx.App(False)
-	frame = MainFrame(None, 'APC Scanner')
+	frame = MainFrame(None, 'APC Crawler')
 	app.MainLoop()
