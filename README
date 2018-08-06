@@ -1,0 +1,6 @@
+APC Scraper
+
+Program designed to help convert data sheets on APC's website to HTML templates.
+
+Currently written for Python 2.7.15
+

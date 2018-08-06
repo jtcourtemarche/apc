@@ -13,7 +13,7 @@ class MainFrame(wx.Frame):
 		self.file_menu.Append(wx.ID_OPEN, '&Open')
 
 		self.run_menu = wx.Menu()
-		self.run_menu.Append(wx.ID_NONE, '&Scan Link')
+		self.run_menu.Append(wx.ID_NONE, '&Scrape Links [F5]')
 
 		self.about_menu = wx.Menu()
 		self.about_menu.Append(wx.ID_ABOUT, '&About')
@@ -39,12 +39,12 @@ class MainFrame(wx.Frame):
 		self.control_label = wx.StaticText(self.panel, label='Enter links below:', size=(800, 15), pos=(0, 75))
 		self.control_label.SetFont(self.header_font)
 
-		self.links_control = wx.TextCtrl(self.panel, style=wx.TE_MULTILINE, size=(800, res[1]/1.5-95), pos=(0,95))
+		self.links_control = wx.TextCtrl(self.panel, style=wx.TE_MULTILINE, size=(800, res[1]-150), pos=(0,95))
 		self.links_control.SetFont(self.text_font)
 		self.links_control.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
 
-		self.crumbs_name_control = wx.TextCtrl(self.panel, style=wx.TE_MULTILINE, size=(800/2, 20), pos=(0,res[1]/1.5))
-		self.crumbs_url_control = wx.TextCtrl(self.panel, style=wx.TE_MULTILINE, size=(800/2, 20), pos=(res[0]/2,res[1]/1.5))
+		#self.crumbs_name_control = wx.TextCtrl(self.panel, style=wx.TE_MULTILINE, size=(800/2, 20), pos=(0,res[1]/1.5))
+		#self.crumbs_url_control = wx.TextCtrl(self.panel, style=wx.TE_MULTILINE, size=(800/2, 20), pos=(res[0]/2,res[1]/1.5))
 
 		self.panel.SetFocus()
 
@@ -56,15 +56,14 @@ class MainFrame(wx.Frame):
 			self.Close(True)
 		elif event.GetKeyCode() == 344:
 			# This should run the program
-			for url in self.links_control.GetValue().splitlines():
-				print 'Loading APC Links'
-				scraper = APCScraper(url)
+			for url in enumerate(self.links_control.GetValue().splitlines()):
+				print '{0}/{1} Loading APC Links'.format(url[0]+1, len(self.links_control.GetValue().splitlines()))
+				scraper = APCScraper(url[1])
 				print 'Parsing HTML'
 				scraper.parse()
 				print 'Applying template'
 				scraper.apply_template()
-
-			pass
+			print 'Done'
 		elif event.GetModifiers() == 2 and event.GetKeyCode() == 65:
 			# Select all
 			self.links_control.SelectAll()
