@@ -1,6 +1,7 @@
 #!/usr/bin/python
+
 import wx
-from apc import APCCrawler
+from main import APCCrawler
 
 def run():
 	pass
@@ -30,7 +31,7 @@ class MainFrame(wx.Frame):
 
 		# Load logo
 		self.logo = wx.Image(
-			'images/logo.jpg',
+			'../static/images/logo.jpg',
 			wx.BITMAP_TYPE_JPEG,
 		)
 		# Convert logo to bitmap so it is renderable 

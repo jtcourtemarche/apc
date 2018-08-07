@@ -1,4 +1,6 @@
-from apc import APCCrawler
+#!/usr/bin/python
+
+from apc.crawler import APCCrawler
 
 # Optional: breadcrumbs
 # breadcrumbs => list of tuples for every breadcrumb
@@ -9,6 +11,6 @@ reader = APCCrawler('http://www.apc.com/shop/us/en/products/APC-Smart-UPS-SRT-10
 reader.parse()
 
 # Optional: template, output_dir
-# template => template file location
+# path => template file location
 # output_dir => directory to generate files to
 reader.apply_template()

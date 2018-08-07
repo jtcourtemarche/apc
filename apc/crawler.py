@@ -18,11 +18,6 @@ class APCCrawler:
 
 		self.breadcrumbs = breadcrumbs
 
-		self.env = Environment(
-			loader=PackageLoader('main', 'templates'),
-			autoescape=select_autoescape(['html', 'xml'])
-		)
-
 		#  CONNECT ---------------------------------------------->
 		try:
 			self.request = urllib2.Request(url, None, {
@@ -92,9 +87,9 @@ class APCCrawler:
 				f.write(output)
 				f.close()
 
-		return output
+		#return output
 
-	def apply_template(self, template='templates/base.html', output_dir='out/'):
+	def apply_template(self, path='../templates/base.html', output_dir='output/'):
 		# Download part image
 		try:
 			request = urllib2.Request(self.page['Meta']['image'], None, {
@@ -125,8 +120,20 @@ class APCCrawler:
 		bsoup = BeautifulSoup(''.join(body), 'html.parser')
 		self.page['Meta']['body'] = bsoup.prettify(formatter='html')  
 
+		# Parse given path variable
+		path_indices = path.split('/')
+		for var in enumerate(path_indices):
+			if '.html' in var[1]:
+				template_file = path_indices[var[0]]
+				template_dir = path.split(var[1])[0]
+
+		self.env = Environment(
+			loader=PackageLoader('apc', template_dir),
+			autoescape=select_autoescape(['html', 'xml'])
+		)
+
 		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
-			template = self.env.get_template('base.html')
+			template = self.env.get_template(template_file)
 			template = template.render(
 				meta = self.page['Meta'],
 				content = self.page['Content'],

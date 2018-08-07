@@ -2,7 +2,7 @@
 *.html
 *.js
 *.css
-**/out
+**/output
 **/SpryAssets
 **/templates
 *.json
