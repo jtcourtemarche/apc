@@ -137,7 +137,8 @@ class APCCrawler:
 			template = template.render(
 				meta = self.page['Meta'],
 				content = self.page['Content'],
-				headers = self.page['Headers']
+				headers = self.page['Headers'],
+				options = False
 			).encode('utf-8')
 			t.write(template)
 			t.close()
