@@ -1,10 +1,7 @@
 #!/usr/bin/python
 
 import wx
-from main import APCCrawler
-
-def run():
-	pass
+from crawler import APCCrawler
 
 class MainFrame(wx.Frame):
 	def __init__(self, parent, title, res=(1280, 720)):
@@ -31,7 +28,7 @@ class MainFrame(wx.Frame):
 
 		# Load logo
 		self.logo = wx.Image(
-			'../static/images/logo.jpg',
+			'static/img/logo.jpg',
 			wx.BITMAP_TYPE_JPEG,
 		)
 		# Convert logo to bitmap so it is renderable 
@@ -71,7 +68,7 @@ class MainFrame(wx.Frame):
 		else:
 			event.Skip()
 
-if __name__ == '__main__':
+def run():
 	app = wx.App(False)
 	frame = MainFrame(None, 'APC Crawler')
 	app.MainLoop()
