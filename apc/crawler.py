@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import urllib2, json, re, webbrowser, os
+import tools
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
@@ -89,7 +90,7 @@ class APCCrawler:
 
 		#return output
 
-	def apply_template(self, path='../templates/base.html', output_dir='output/'):
+	def apply_template(self, template_dir='../templates/base.html', output_dir='output/'):
 		# Download part image
 		try:
 			request = urllib2.Request(self.page['Meta']['image'], None, {
@@ -120,12 +121,12 @@ class APCCrawler:
 		bsoup = BeautifulSoup(''.join(body), 'html.parser')
 		self.page['Meta']['body'] = bsoup.prettify(formatter='html')  
 
-		# Parse given path variable
-		path_indices = path.split('/')
+		# Parse given template_dir variable
+		path_indices = template_dir.split('/')
 		for var in enumerate(path_indices):
 			if '.html' in var[1]:
 				template_file = path_indices[var[0]]
-				template_dir = path.split(var[1])[0]
+				template_dir = template_dir.split(var[1])[0]
 
 		self.env = Environment(
 			loader=PackageLoader('apc', template_dir),
@@ -142,3 +143,4 @@ class APCCrawler:
 			).encode('utf-8')
 			t.write(template)
 			t.close()
+		tools.log('Created: '+self.page['Meta']['part_number'])

@@ -22,6 +22,16 @@ if args.tool == 'clear':
 		clear_output()
 	exit()
 
+if args.tool == 'cli':
+	# Limited support currently (TODO: breadcrumbs)
+	if args.tool_args != None:
+		reader = APCCrawler(args.tool_args)
+		reader.parse()
+		reader.apply_template()
+	else:
+		print 'Please insert an APC url to the end of the "cli" command'
+	exit()
+
 # ----------------------------------->
 
 # Optional: breadcrumbs
@@ -32,8 +42,8 @@ if args.tool == 'clear':
 # write => outputs parsing results to a json file (output.json)
 # reader.parse()
 
-# Optional: template, output_dir
-# path => template file location
+# Optional: template_dir, output_dir
+# template_dir => template file location
 # output_dir => directory to generate files to
 # reader.apply_template()
 
