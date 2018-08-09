@@ -9,12 +9,12 @@ from bs4 import BeautifulSoup
 class APCCrawler:
 	# Reads url passed into class, parses data sheet as json,
 	# and applies that data, among other things, to a jinja2 template
-	def __init__(self, url, breadcrumbs=[('','')]):
+	def __init__(self, url, breadcrumbs=[]):
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 		self.page = {
 			'Meta': dict(),
 			'Headers':[],
-			'Content': dict(),
+			'Techspecs': dict(),
 		}
 
 		self.breadcrumbs = breadcrumbs
@@ -60,6 +60,7 @@ class APCCrawler:
 		return content	
 
 	def parse(self, write=False):
+		# Parse tech specs ---------------------------------------------->
 		page_div = self.soup.find('div', id='techspecs')
 		for header in page_div.find_all('h4'):
 			header = header.contents[0]
@@ -74,24 +75,46 @@ class APCCrawler:
 				if 'Extended Run Options' in title:
 					continue
 
-				self.page['Content'][title] = self.filter_content(list_item, title)
+				self.page['Techspecs'][title] = self.filter_content(list_item, title)
 		
-		# Get image
-		self.page['Meta']['image'] = 'http:{0}'.format(self.soup.find_all(class_='img-responsive')[0].get('src'))
-
+		# Get image ---------------------------------------------------->
+		try:
+			# Newer pages
+			self.page['Meta']['image'] = 'http:{}'.format(self.soup.find_all(class_='img-responsive')[0].get('src'))
+		except:
+			# Applicable to some older pages
+			self.page['Meta']['image'] = 'http:{}'.format(self.soup.find_all(id='DataDisplay')[0].get('src'))
+			
 		output = json.dumps(self.page, sort_keys=True, indent=4)
 		
-		# Write provides a JSON data sheet
+		# Get Full Description ----------------------------------------->
+		# This will sometimes have information not normally found in the
+		# the general description
+		product_description = []
+		product_overview = self.soup.find_all(id='productoverview')[0]
+		for p in product_overview.find_all('p'):
+			if 'Antigua' in p.get_text():
+				# This will end the loop at the bottom of the product overview div
+				# where countries are listed out
+				continue
+			else: 
+				product_description.append(p.get_text())
+
+		self.page['Meta']['full_description'] = '<br/>'.join(product_description)
+
+		# Includes ----------------------------------------------------->
+		self.page['Meta']['includes'] = self.soup.find(class_='includes').get_text()
+		self.page['Meta']['includes'] = re.sub('\s\s+', ' ', self.page['Meta']['includes']).replace(' ,', ',')
+
+		# Write provides a JSON data sheet ----------------------------->
 		if write:
 			with open('output.json', 'w') as f:
 				print 'Writing to output.json'
 				f.write(output)
 				f.close()
 
-		#return output
-
 	def apply_template(self, template_dir='../templates/base.html', output_dir='output/'):
-		# Download part image
+		# Download part image ------------------------------------------>
 		try:
 			request = urllib2.Request(self.page['Meta']['image'], None, {
 				'User-Agent':self.user_agent
@@ -108,20 +131,22 @@ class APCCrawler:
 		except:
 			raise ValueError("Image file download failed")
 
-		# Breadcrumbs
-		breadcrumbs = map(lambda x: u"<a href='{0}'>{1}</a> »".format(x[1], x[0]), self.breadcrumbs) 
+		# Breadcrumbs -------------------------------------------------->
+		if not self.breadcrumbs:
+			self.page['Meta']['breadcrumbs'] = ''
+		else:
+			breadcrumbs = map(lambda x: u"<a href='{0}'>{1}</a> »".format(x[1], x[0]), self.breadcrumbs) 
+			self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
 
-		self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
-
-		# Body
+		# Body --------------------------------------------------------->
 		body = []
-		for key, value in self.page['Content'].iteritems():
+		for key, value in self.page['Techspecs'].iteritems():
 			body.append((u"<tr><td>{0}</td><td>{1}</td></tr>").format(key, value))
 
 		bsoup = BeautifulSoup(''.join(body), 'html.parser')
 		self.page['Meta']['body'] = bsoup.prettify(formatter='html')  
 
-		# Parse given template_dir variable
+		# Parse given template_dir variable ---------------------------->
 		path_indices = template_dir.split('/')
 		for var in enumerate(path_indices):
 			if '.html' in var[1]:
@@ -137,7 +162,8 @@ class APCCrawler:
 			template = self.env.get_template(template_file)
 			template = template.render(
 				meta = self.page['Meta'],
-				content = self.page['Content'],
+				# Not used in template currently deprecated
+				techspecs = self.page['Techspecs'],
 				headers = self.page['Headers'],
 				options = False
 			).encode('utf-8')
