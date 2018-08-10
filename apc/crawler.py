@@ -13,8 +13,7 @@ class APCCrawler:
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 		self.page = {
 			'Meta': dict(),
-			'Headers':[],
-			'Techspecs': dict(),
+			'Techspecs': '',
 		}
 
 		self.breadcrumbs = breadcrumbs
@@ -40,7 +39,7 @@ class APCCrawler:
 
 	def filter_content(self, list_item, title):
 		# Remove Unicode Characters
-		content = list_item.get_text(' ', strip=True).encode('ascii', 'ignore')
+		content = list_item.encode('ascii', 'ignore')
 
 		# Remove first instance of title
 		content = content.replace(title, '', 1)
@@ -62,21 +61,27 @@ class APCCrawler:
 	def parse(self, write=False):
 		# Parse tech specs ---------------------------------------------->
 		page_div = self.soup.find('div', id='techspecs')
+		techspecs = []
 		for header in page_div.find_all('h4'):
-			header = header.contents[0]
-			header = header.replace('&amp;', '&')
+			cheader = header.contents[0]
+			cheader = cheader.replace('&amp;', '&')
 		
-			self.page['Headers'].append(header)
+			techspecs.append('<th colspan="2" align="left" bgcolor="#CCCCCC" headers="base_SKU">{}</th>'.format(cheader))
 
-		for list_item in page_div.find_all(class_='col-md-12 no-gutter'):
-			for title in list_item.find(class_='col-md-3 bold'):
-				# Skip over this option, unecessarily difficult to retrieve this info because it links to
-				# a separate data sheet
-				if 'Extended Run Options' in title:
-					continue
+			list_item = header.find_next_sibling('ul', class_='table-normal')
+			for contents in list_item.find_all(class_='col-md-12'):
+				for title in contents.find(class_='col-md-3 bold'):
+					# Skip over this option, unecessarily difficult to retrieve this info because it links to
+					# a separate data sheet
+					if 'Extended Run Options' in title:
+						continue
 
-				self.page['Techspecs'][title] = self.filter_content(list_item, title)
-		
+					contents = contents.get_text(' ', strip=True).replace(title, '')
+					techspecs.append((u"<tr><td>{0}</td><td>{1}</td></tr>").format(title, contents))
+
+		techspecs = ''.join(techspecs)
+		self.page['Techspecs'] = BeautifulSoup(techspecs, 'html.parser').prettify(formatter='html')  
+
 		# Get image ---------------------------------------------------->
 		try:
 			# Newer pages
@@ -138,14 +143,6 @@ class APCCrawler:
 			breadcrumbs = map(lambda x: u"<a href='{0}'>{1}</a> »".format(x[1], x[0]), self.breadcrumbs) 
 			self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
 
-		# Body --------------------------------------------------------->
-		body = []
-		for key, value in self.page['Techspecs'].iteritems():
-			body.append((u"<tr><td>{0}</td><td>{1}</td></tr>").format(key, value))
-
-		bsoup = BeautifulSoup(''.join(body), 'html.parser')
-		self.page['Meta']['body'] = bsoup.prettify(formatter='html')  
-
 		# Parse given template_dir variable ---------------------------->
 		path_indices = template_dir.split('/')
 		for var in enumerate(path_indices):
@@ -162,9 +159,8 @@ class APCCrawler:
 			template = self.env.get_template(template_file)
 			template = template.render(
 				meta = self.page['Meta'],
-				# Not used in template currently deprecated
 				techspecs = self.page['Techspecs'],
-				headers = self.page['Headers'],
+				# Not used in template currently deprecated
 				options = False
 			).encode('utf-8')
 			t.write(template)
