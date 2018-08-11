@@ -6,6 +6,25 @@ import tools
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
+#
+# APCCrawler() 
+# -------------------------------------------------------- 
+# Required: link to APC page
+# Optional: breadcrumbs
+# breadcrumbs => list of tuples for every breadcrumb
+#
+# APCCrawler().parse()
+# --------------------------------------------------------
+# Optional: write
+# write => outputs parsing results to a json file (output.json)
+#
+# APCCrawler().apply_template()
+# --------------------------------------------------------
+# Optional: template_dir, output_dir
+# template_dir => template file location
+# output_dir => directory to generate files to
+#
+
 class APCCrawler:
 	# Reads url passed into class, parses data sheet as json,
 	# and applies that data, among other things, to a jinja2 template
