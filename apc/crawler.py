@@ -13,7 +13,8 @@ class APCCrawler:
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 		self.page = {
 			'Meta': dict(),
-			'Techspecs': '',
+			'Techspecs': [],
+			'Headers': []
 		}
 
 		self.breadcrumbs = breadcrumbs
@@ -46,29 +47,22 @@ class APCCrawler:
 			cheader = header.contents[0]
 			cheader = cheader.replace('&amp;', '&')
 		
-			techspecs.append('<th colspan="2" align="left" bgcolor="#CCCCCC" headers="base_SKU">{}</th>'.format(cheader))
+			if self.page['Headers']:
+				self.page['Headers'][len(self.page['Headers'])-1] = cheader
+			else:
+				self.page['Headers'].append(cheader)
 
 			list_item = header.find_next_sibling('ul', class_='table-normal')
-			break_outer = False
-
 			for contents in list_item.find_all(class_='col-md-12'):
 				for title in contents.find(class_='col-md-3 bold'):
 					# Checks title filters 
 					if map(lambda x: x, filter(lambda x: x in title, self.techspecs_title_filters)) != []:
 						continue
 
-					if title == 'Runtime':
-						contents = "<img class='display-image-1_5' src='images/{0}-runtime.png'></img>".format(self.page['Meta']['part_number'])
-						contents = contents.replace(title, '')
-					elif title == 'Efficiency':
-						contents = "<img class='display-image-1_5' src='images/{0}-efficiency.png'></img>".format(self.page['Meta']['part_number'])
-					else:
-						contents = contents.get_text(' ', strip=True).replace(title, '')
+					contents = contents.get_text(' ', strip=True).replace(title, '')
 					
-					techspecs.append((u"<tr><td>{0}</td><td>{1}</td></tr>").format(title, contents))
-
-		techspecs = ''.join(techspecs)
-		self.page['Techspecs'] = BeautifulSoup(techspecs, 'html.parser').prettify(formatter='html')
+					self.page['Techspecs'].append((title, contents))
+					self.page['Headers'].append('')
 
 		# Get image ---------------------------------------------------->
 		try:
@@ -81,6 +75,8 @@ class APCCrawler:
 		# Includes ----------------------------------------------------->
 		product_overview = self.soup.find_all(id='productoverview')[0]
 
+		# Default includes to none
+		self.page['Meta']['includes'] = ''
 		try:
 			# Test for explicit reference to includes
 			# -> Usually found in older pages
@@ -138,12 +134,11 @@ class APCCrawler:
 			loader=PackageLoader('apc', template_dir),
 			autoescape=select_autoescape(['html', 'xml'])
 		)
-
 		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
 			template = self.env.get_template(template_file)
 			template = template.render(
 				meta = self.page['Meta'],
-				techspecs = self.page['Techspecs'],
+				techspecs = zip(self.page['Techspecs'], self.page['Headers']),
 				# Not used in template currently deprecated
 				options = False
 			).encode('utf-8')
