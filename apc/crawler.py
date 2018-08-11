@@ -53,12 +53,8 @@ class APCCrawler:
 
 			for contents in list_item.find_all(class_='col-md-12'):
 				for title in contents.find(class_='col-md-3 bold'):
-					for tfilter in self.techspecs_title_filters:
-						if tfilter in title:
-							break_outer = True
-					
-					if break_outer:
-						break_outer = False
+					# Checks title filters 
+					if map(lambda x: x, filter(lambda x: x in title, self.techspecs_title_filters)) != []:
 						continue
 
 					if title == 'Runtime':
