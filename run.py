@@ -22,16 +22,6 @@ if args.tool == 'clear':
 		clear_output()
 	exit()
 
-if args.tool == 'cli':
-	# Limited support currently (TODO: breadcrumbs)
-	if args.tool_args != None:
-		reader = APCCrawler(args.tool_args)
-		reader.parse()
-		reader.apply_template()
-	else:
-		print 'Please insert an APC url to the end of the "cli" command'
-	exit()
-
 # ----------------------------------->
 
 # Optional: breadcrumbs
