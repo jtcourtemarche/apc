@@ -17,6 +17,7 @@ class APCCrawler:
 		}
 
 		self.breadcrumbs = breadcrumbs
+		self.techspecs_title_filters = ['Extended Run Options', 'PEP', 'EOLI']
 
 		#  CONNECT ---------------------------------------------->
 		try:
@@ -37,27 +38,6 @@ class APCCrawler:
 		self.page['Meta']['description'] = self.soup.find(class_='page-header').get_text()
 		self.page['Meta']['part_number'] = self.soup.find(class_='part-number').get_text()
 
-	def filter_content(self, list_item, title):
-		# Remove Unicode Characters
-		content = list_item.encode('ascii', 'ignore')
-
-		# Remove first instance of title
-		content = content.replace(title, '', 1)
-
-		# Removes spaces & tabs
-		content = re.sub(r"[\n\t]*", "", content)
-
-		if 'View Runtime Graph' in content:
-			scrot_url = "http://www.apc.com/products/runtimegraph/runtime_graph.cfm?base_sku={0}&chartSize=large".format(self.page['Meta']['part_number'])
-
-			#webbrowser.open(scrot_url)
-			content = "<img class='display-image-1_5' src='images/{0}-runtime.png'>".format(self.page['Meta']['part_number'])
-
-		# Handle efficiency graphs
-		#if 'View Efficiency Graph' in content:	
-
-		return content	
-
 	def parse(self, write=False):
 		# Parse tech specs ---------------------------------------------->
 		page_div = self.soup.find('div', id='techspecs')
@@ -69,18 +49,30 @@ class APCCrawler:
 			techspecs.append('<th colspan="2" align="left" bgcolor="#CCCCCC" headers="base_SKU">{}</th>'.format(cheader))
 
 			list_item = header.find_next_sibling('ul', class_='table-normal')
+			break_outer = False
+
 			for contents in list_item.find_all(class_='col-md-12'):
 				for title in contents.find(class_='col-md-3 bold'):
-					# Skip over this option, unecessarily difficult to retrieve this info because it links to
-					# a separate data sheet
-					if 'Extended Run Options' in title:
+					for tfilter in self.techspecs_title_filters:
+						if tfilter in title:
+							break_outer = True
+					
+					if break_outer:
+						break_outer = False
 						continue
 
-					contents = contents.get_text(' ', strip=True).replace(title, '')
+					if title == 'Runtime':
+						contents = "<img class='display-image-1_5' src='images/{0}-runtime.png'></img>".format(self.page['Meta']['part_number'])
+						contents = contents.replace(title, '')
+					elif title == 'Efficiency':
+						contents = "<img class='display-image-1_5' src='images/{0}-efficiency.png'></img>".format(self.page['Meta']['part_number'])
+					else:
+						contents = contents.get_text(' ', strip=True).replace(title, '')
+					
 					techspecs.append((u"<tr><td>{0}</td><td>{1}</td></tr>").format(title, contents))
 
 		techspecs = ''.join(techspecs)
-		self.page['Techspecs'] = BeautifulSoup(techspecs, 'html.parser').prettify(formatter='html')  
+		self.page['Techspecs'] = BeautifulSoup(techspecs, 'html.parser').prettify(formatter='html')
 
 		# Get image ---------------------------------------------------->
 		try:
@@ -90,29 +82,25 @@ class APCCrawler:
 			# Applicable to some older pages
 			self.page['Meta']['image'] = 'http:{}'.format(self.soup.find_all(id='DataDisplay')[0].get('src'))
 			
-		output = json.dumps(self.page, sort_keys=True, indent=4)
-		
-		# Get Full Description ----------------------------------------->
-		# This will sometimes have information not normally found in the
-		# the general description
-		product_description = []
-		product_overview = self.soup.find_all(id='productoverview')[0]
-		for p in product_overview.find_all('p'):
-			if 'Antigua' in p.get_text():
-				# This will end the loop at the bottom of the product overview div
-				# where countries are listed out
-				continue
-			else: 
-				product_description.append(p.get_text())
-
-		self.page['Meta']['full_description'] = '<br/>'.join(product_description)
-
 		# Includes ----------------------------------------------------->
-		self.page['Meta']['includes'] = self.soup.find(class_='includes').get_text()
+		product_overview = self.soup.find_all(id='productoverview')[0]
+
+		try:
+			# Test for explicit reference to includes
+			# -> Usually found in older pages
+			self.page['Meta']['includes'] = self.soup.find(class_='includes').get_text()
+		except:
+			# Scan for includes instead
+			for p in product_overview.find_all('p'):
+				if 'Includes' in p.get_text():
+					self.page['Meta']['includes'] = p.get_text()
+					break
+
 		self.page['Meta']['includes'] = re.sub('\s\s+', ' ', self.page['Meta']['includes']).replace(' ,', ',')
 
 		# Write provides a JSON data sheet ----------------------------->
 		if write:
+			output = json.dumps(self.page, sort_keys=True, indent=4)
 			with open('output.json', 'w') as f:
 				print 'Writing to output.json'
 				f.write(output)
