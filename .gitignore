@@ -1,10 +1,9 @@
 *.htm
-*.html
 *.js
 *.css
 **/output
 **/SpryAssets
-**/templates
+templates/base.html
 *.json
 *.log
 

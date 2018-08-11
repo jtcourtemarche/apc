@@ -1,0 +1,26 @@
+<body>
+	<p>
+		{{ meta['part_number'] }}
+	</p>
+
+	<p>
+		{{ meta['description'] }}
+	</p>
+
+	<p>
+		{{ meta['breadcrumbs'] | safe }}
+	</p>
+
+	<p>
+		{{ meta['includes'] }}
+	</p>
+	
+	<img src="{{ meta['image']}}"></img>
+
+	{% for row, header in techspecs %}
+		{% if header != '' %}
+			{{ header }}
+		{% endif %}
+		{{ row }}
+	{% endfor %}
+</body>
