@@ -20,7 +20,6 @@
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-		<script type="text/javascript" src="../static/js/main.js"></script>
 	</head>
 
 	<body>
@@ -53,7 +52,7 @@
 						</div>
 					</form>
 					<button id='clear_button' class='btn btn-secondary'>Clear</button>
-					<button id='clear_output_button' class='btn btn-secondary'>Clear Output</button>
+					<button id='clear_output_button' class='btn btn-secondary'>Clear Output Folder</button>
 					<a href='/logs' target='_blank'>
 						<button class='btn btn-secondary'>View Logs</button>
 					</a>
@@ -61,37 +60,8 @@
 				<div class='col'>
 					<span id='output-log'></span>
 				</div>
-				<script type='text/javascript'>
-					var socket = io.connect('ws://' + document.domain + ':' + location.port);
-					
-					var $form = $('#apc-form');
-					
-					$form.submit(function() {
-						socket.emit('run_crawler', {data:$form.serializeArray()})
-						return false;
-					});
-
-					socket.on('payload', function(data) {
-						if (data.includes('[Complete]')) {
-							$('#output-log').append('<div class="alert alert-success" role="alert">'+ data +'</div><hr>');
-						} else if (data.includes('[Error]')) {
-							$('#output-log').append('<div class="alert alert-danger" role="alert">'+ data +'</div><hr>');	
-						}
-						else {
-							$('#output-log').append('<span>'+data+'</span><br/>');
-						}
-					});
-				</script>
 			</div>
 		</div>	
-
-		<script>
-			$('#clear_button').click(function() {
-				$('textarea').val('');
-			});
-			$('#clear_output_button').click(function() {
-				$.post('/clear');
-			});
-		</script>
+		<script type="text/javascript" src="../static/js/main.js"></script>
 	</body>
 </html>
