@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
+import timeit
 from crawler import APCCrawler
 from tools import clear_output
 
@@ -14,27 +15,41 @@ app.config.update(
 
 socketio = SocketIO(app)
 
+apc_settings = {
+	'write': False
+}
+
 @app.route('/')
 def index():
 	return render_template('interface.html')
 
 def run_crawler(link):
 	socketio.emit('payload', 'Loading <a href="'+link+'" target="_blank">'+link+'</a>')
+
 	try:
 		scraper = APCCrawler(link)
-	except:
+	except Exception:
 		socketio.emit('payload', '[Error] Not a valid URL')
 		return None  
 
 	socketio.emit('payload', 'Parsing link')
-	scraper.parse(write=True)
+	try:
+		scraper.parse(apc_settings['write'])
+	except Exception as e:
+		socketio.emit('payload', '[Error] Could not parse URL: {}'.format(e))
 
 	socketio.emit('payload', 'Applying template')
-	part_num = scraper.apply_template()
-
-	
+	try:
+		part_num = scraper.apply_template()
+	except Exception as e:
+		socketio.emit('payload', '[Error] Could not render template: {}'.format(e))
 
 	socketio.emit('payload', '[Complete] '+part_num)
+
+@socketio.on('set')
+def change_settings(settings):
+	# Wrapper for changing crawler settings
+	apc_settings[settings[0]] = settings[1]
 
 @socketio.on('run_crawler')
 def handle_run(form):
