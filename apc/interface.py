@@ -27,10 +27,12 @@ def run_crawler(link):
 		return None  
 
 	socketio.emit('payload', 'Parsing link')
-	scraper.parse()
+	scraper.parse(write=True)
 
 	socketio.emit('payload', 'Applying template')
 	part_num = scraper.apply_template()
+
+	
 
 	socketio.emit('payload', '[Complete] '+part_num)
 

@@ -18,7 +18,8 @@
 	<img src="{{ meta['image']}}"/>
 
 	{% for row, header in techspecs %}
-		{% if header != '' %}
+		<!-- The * character represents the same header as previous -->
+		{% if header != '*' %}
 			{{ header }}
 		{% endif %}
 		{{ row }}

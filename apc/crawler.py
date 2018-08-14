@@ -36,7 +36,12 @@ class APCCrawler:
 		self.page = {
 			'Meta': dict(),
 			'Techspecs': [],
-			'Headers': []
+			'Headers': [], 
+			'Options': {
+				'Accessories':[],
+				'Services':[],
+				'Software':[],
+			}
 		}
 
 		self.breadcrumbs = breadcrumbs
@@ -78,13 +83,13 @@ class APCCrawler:
 			for contents in list_item.find_all(class_='col-md-12'):
 				for title in contents.find(class_='col-md-3 bold'):
 					# Checks title filters 
-					if map(lambda x: x, filter(lambda x: x in title, self.techspecs_title_filters)) != []:
+					if filter(lambda x: x in title, self.techspecs_title_filters):
 						continue
 
 					contents = contents.get_text(' ', strip=True).replace(title, '')
 					
 					self.page['Techspecs'].append((title, contents))
-					self.page['Headers'].append('')
+					self.page['Headers'].append('*')
 
 		# Get image ---------------------------------------------------->
 		try:
@@ -112,11 +117,38 @@ class APCCrawler:
 
 		self.page['Meta']['includes'] = re.sub('\s\s+', ' ', self.page['Meta']['includes']).replace(' ,', ',')
 
+		# Includes ----------------------------------------------------->
+		options = self.soup.find('div', id='options')
+		for option in options.find_all('div', class_='option-item'):
+			option_title = option.find('a').get_text()
+			option_description = option.find('p').get_text()
+
+			option_number = options.find('div', class_='part-no').get_text()
+			# Remove tabs and new lines
+			option_number = option_number.replace('\n', '').replace('\t', '')
+
+			# 3 Available option types:
+			# 	- Accessories
+			# 	- Services
+			#	- Software
+
+			software_filters = ['software', 'struxureware']
+
+			if option_number[0].lower() == 'w':
+				option_type = 'Services'
+			elif filter(lambda x: x in option_title.lower(), software_filters):
+				option_type = 'Software'
+			else:
+				option_type = 'Accessories'
+
+			self.page['Options'][option_type].append((option_title, option_description, option_number))
+		#self.page['Options'] = sorted(self.page['Options'])
+
 		# Write provides a JSON data sheet ----------------------------->
 		if write:
 			output = json.dumps(self.page, sort_keys=True, indent=4)
 			with open('output.json', 'w') as f:
-				tools.log('Writing {} to output.json'.format(self.page['Meta']['part_number']))
+				apc.tools.log('Writing {} to output.json'.format(self.page['Meta']['part_number']))
 				f.write(output)
 				f.close()
 
@@ -164,7 +196,7 @@ class APCCrawler:
 				meta = self.page['Meta'],
 				techspecs = zip(self.page['Techspecs'], self.page['Headers']),
 				# Not used in template currently deprecated
-				options = False
+				options = self.page['Options']
 			).encode('utf-8')
 			t.write(template)
 			t.close()
