@@ -48,7 +48,7 @@ class APCCrawler:
 				'User-Agent':self.user_agent
 			})
 			self.data = urllib2.urlopen(self.request)
-		except:
+		except URLError:
 			raise ValueError("Not a valid url!")
 
 		if (self.data.getcode() != 200):
@@ -90,7 +90,7 @@ class APCCrawler:
 		try:
 			# Newer pages
 			self.page['Meta']['image'] = 'http:{}'.format(self.soup.find_all(class_='img-responsive')[0].get('src'))
-		except:
+		except Exception:
 			# Applicable to some older pages
 			self.page['Meta']['image'] = 'http:{}'.format(self.soup.find_all(id='DataDisplay')[0].get('src'))
 			
@@ -103,7 +103,7 @@ class APCCrawler:
 			# Test for explicit reference to includes
 			# -> Usually found in older pages
 			self.page['Meta']['includes'] = self.soup.find(class_='includes').get_text()
-		except:
+		except Exception:
 			# Scan for includes instead
 			for p in product_overview.find_all('p'):
 				if 'Includes' in p.get_text():
@@ -135,8 +135,10 @@ class APCCrawler:
 			with open('{0}images/{1}.jpg'.format(output_dir, self.page['Meta']['part_number']), 'wb') as img_f:
 				img_f.write(data.read())
 				img_f.close()
-		except:
-			raise ValueError("Image file download failed")
+		except URLError:
+			raise ValueError("Error loading image URL")
+		except Exception as e:
+			raise ValueError("Image file download failed: {0!s}".format(e))
 
 		# Breadcrumbs -------------------------------------------------->
 		if not self.breadcrumbs:
