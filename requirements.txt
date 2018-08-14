@@ -1,3 +1,4 @@
 jinja2
 bs4
-wxpython
+flask
+flask_socketio

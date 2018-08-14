@@ -113,7 +113,7 @@ class APCCrawler:
 		if write:
 			output = json.dumps(self.page, sort_keys=True, indent=4)
 			with open('output.json', 'w') as f:
-				print 'Writing to output.json'
+				tools.log('Writing {} to output.json'.format(self.page['Meta']['part_number']))
 				f.write(output)
 				f.close()
 
@@ -164,3 +164,4 @@ class APCCrawler:
 			t.write(template)
 			t.close()
 		tools.log('Created: '+self.page['Meta']['part_number'])
+		return self.page['Meta']['part_number']

@@ -4,7 +4,6 @@ import os, datetime
 
 def log(string, write=True):
 	string = '[{0}] {1}\n'.format(datetime.datetime.now(), string)
-	print string
 	if write:
 		if os.path.isfile('crawler.log'):
 			with open('crawler.log', 'a') as l:

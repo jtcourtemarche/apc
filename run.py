@@ -3,7 +3,7 @@
 import argparse
 
 from apc.crawler import APCCrawler
-from apc.gui import run
+from apc.interface import run
 from apc.tools import clear_output
 
 # Load args ------------------------->

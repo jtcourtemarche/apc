@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>APC Logs</title>
+	<style>
+		* {
+			font-family: monospace;	
+		}
+	</style>
+</head>
+
+<body>
+{% for line in log %} 
+	<p>{{ line }}</p>
+{% endfor %}
+</body>
+
+</html>
