@@ -1,8 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import urllib2, json, re, webbrowser, os
-import tools
+import urllib2
+import json
+import re
+import os
+import apc.tools
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
@@ -151,7 +154,7 @@ class APCCrawler:
 
 		self.env = Environment(
 			loader=PackageLoader('apc', template_dir),
-			autoescape=select_autoescape(['html', 'xml'])
+			autoescape=True
 		)
 		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
 			template = self.env.get_template(template_file)
@@ -163,5 +166,5 @@ class APCCrawler:
 			).encode('utf-8')
 			t.write(template)
 			t.close()
-		tools.log('Created: '+self.page['Meta']['part_number'])
+		apc.tools.log('Created: '+self.page['Meta']['part_number'])
 		return self.page['Meta']['part_number']
