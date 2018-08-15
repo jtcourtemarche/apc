@@ -1,27 +1,49 @@
-<body>
-	<p>
-		{{ meta['part_number'] }}
-	</p>
+<!doctype html>
+<html lang="en">
+	<body>
+		<!-- Part number -->
+		<p>
+			{{ meta['part_number'] }}
+		</p>
 
-	<p>
-		{{ meta['description'] }}
-	</p>
+		<!-- General description -->
+		<p>
+			{{ meta['description'] }}
+		</p>
 
-	<p>
-		{{ meta['breadcrumbs'] | safe }}
-	</p>
+		<!-- Breadcrumbs -->
+		<p>
+			{{ meta['breadcrumbs'] | safe }}
+		</p>
 
-	<p>
-		{{ meta['includes'] }}
-	</p>
-	
-	<img src="{{ meta['image']}}"/>
+		<!-- Included parts -->
+		<p>
+			{{ meta['includes'] }}
+		</p>
+		
+		<!-- Part image -->
+		<!-- Image is also downloaded in output/images -->
+		<img src="{{ meta['image'] }}"/>
 
-	{% for row, header in techspecs %}
-		<!-- The * character represents the same header as previous -->
-		{% if header != '*' %}
-			{{ header }}
-		{% endif %}
-		{{ row }}
-	{% endfor %}
-</body>
+		<!-- Tech specs -->
+		{% for row, header in techspecs %}
+			<!-- The * character represents the same header as previous -->
+			{% if header != '*' %}
+				{{ header }}
+			{% endif %}
+			{{ row }}
+		{% endfor %}
+
+		<!-- Options -->
+	    {% for key, value in options.iteritems() %}
+			<strong>Options Category: {{ key }}</strong>
+	      	{% for option in value %}
+		    <ul>
+		      <li>Option title: {{ option[0] }}</li>
+		      <li>Option description: {{ option[1] }}</li>
+		      <li>Option part number:{{ option[2] }}</li> 
+	      	</ul>
+	      	{% endfor %}
+	    {% endfor %}
+	</body>
+</html>
