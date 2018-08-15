@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
-import timeit
 from crawler import APCCrawler
 from tools import clear_output
 
