@@ -34,7 +34,7 @@ from bs4 import BeautifulSoup
 class APCCrawler:
 	# Reads url passed into class, parses data sheet as json,
 	# and applies that data, among other things, to a jinja2 template
-	def __init__(self, breadcrumbs=[]):
+	def __init__(self):
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 		self.page = {
 			'Meta': dict(),
@@ -47,7 +47,7 @@ class APCCrawler:
 			}
 		}
 
-		self.breadcrumbs = breadcrumbs
+		self.breadcrumbs = []
 		self.techspecs_title_filters = ['Extended Run Options', 'PEP', 'EOLI']
 		self.software_options_filters = ['software', 'struxureware']
 
@@ -217,5 +217,6 @@ class APCCrawler:
 			).encode('utf-8')
 			t.write(template)
 			t.close()
+			
 		apc.tools.log('Created: '+self.page['Meta']['part_number'])
 		return self.page['Meta']['part_number']

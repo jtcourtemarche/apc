@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import os, datetime
+import os
+import datetime
 
 def log(string, write=True):
 	string = '[{0}] {1}\n'.format(datetime.datetime.now(), string)
@@ -17,10 +18,9 @@ def log(string, write=True):
 def clear_output(output_dir='output/'):
 	for page in os.listdir(output_dir):
 		if os.path.isfile(output_dir+page):
-			log('Removing '+page, write=False)
 			os.remove(output_dir+page)
 	
 	for image in os.listdir('{}/images'.format(output_dir)):
-		log('Removing '+page, write=False)
 		os.remove(output_dir + '/images/' + image)
-	log('Output cleared', write=False)
+	log('Output cleared', write=True)
+	

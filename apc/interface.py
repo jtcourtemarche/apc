@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
 from apc.crawler import APCCrawler
@@ -74,4 +76,3 @@ def run():
 	global scraper
 	scraper = APCCrawler()
 	socketio.run(app)
-	
