@@ -20,6 +20,7 @@ socket.on('payload', function(data) {
 
 $('#clear_button').click(function() {
 	$('textarea').val('');
+	$('#output-log').empty();
 });
 $('#clear_output_button').click(function() {
 	$.post('/clear');
