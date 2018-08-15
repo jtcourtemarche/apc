@@ -123,39 +123,44 @@ class APCCrawler:
 		self.page['Meta']['includes'] = re.sub('\s\s+', ' ', self.page['Meta']['includes']).replace(' ,', ',')
 
 		# Includes ----------------------------------------------------->
-		options = self.soup.find('div', id='options') 
-		for option in options.find_all('div', class_='col-md-12'):
-			option_item = option.find('div', class_='option-item')
+		
+		try:
+			options = self.soup.find('div', id='options') 
 
-			if option_item == None:
-				# There are multiple 'col-md-12' divs, find the right one
-				continue
+			for option in options.find_all('div', class_='col-md-12'):
+				option_item = option.find('div', class_='option-item')
 
-			option_title = option_item.find('a').get_text()
-			option_description = option_item.find('p').get_text()
+				if option_item == None:
+					# There are multiple 'col-md-12' divs, find the right one
+					continue
 
-			if option_description == '': 
-				option_description = '...'
+				option_title = option_item.find('a').get_text()
+				option_description = option_item.find('p').get_text()
 
-			option_number = option.find('div', class_='part-no').get_text()
-			# Remove tabs and new lines
-			option_description = option_description.replace('\n', '').replace('\t', '')
-			option_number = option_number.replace('\n', '').replace('\t', '')
+				if option_description == '': 
+					option_description = '...'
 
-			# 3 Available option types:
-			# 	- Accessories
-			# 	- Services
-			#	- Software
+				option_number = option.find('div', class_='part-no').get_text()
+				# Remove tabs and new lines
+				option_description = option_description.replace('\n', '').replace('\t', '')
+				option_number = option_number.replace('\n', '').replace('\t', '')
 
-			if option_number[0].lower() == 'w':
-				option_type = 'Services'
-			elif filter(lambda x: x in option_title.lower(), self.software_options_filters):
-				option_type = 'Software'
-			else:
-				option_type = 'Accessories'
+				# 3 Available option types:
+				# 	- Accessories
+				# 	- Services
+				#	- Software
 
-			self.page['Options'][option_type].append((option_title, option_description, option_number))
-		#self.page['Options'] = sorted(self.page['Options'])
+				if option_number[0].lower() == 'w':
+					option_type = 'Services'
+				elif filter(lambda x: x in option_title.lower(), self.software_options_filters):
+					option_type = 'Software'
+				else:
+					option_type = 'Accessories'
+
+				self.page['Options'][option_type].append((option_title, option_description, option_number))
+			#self.page['Options'] = sorted(self.page['Options'])
+		except Exception:
+			self.page['Options'] = False
 
 		# Write provides a JSON data sheet ----------------------------->
 		if write:
