@@ -35,7 +35,10 @@
 				font-size: 32px;
 			}
 			#output-log {
+				overflow: hidden;
 				overflow-y: scroll;
+				height: 500px;
+				max-height: 500px;
 			}
 		</style>
 		<div class='banner'>
@@ -58,7 +61,7 @@
 					</a>
 				</div>
 				<div class='col'>
-					<span id='output-log'></span>
+					<div id='output-log'></div>
 				</div>
 			</div>
 		</div>	
