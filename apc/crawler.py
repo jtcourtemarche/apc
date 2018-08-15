@@ -10,11 +10,14 @@ from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
 #
-# APCCrawler() 
+# APCCrawler()
 # -------------------------------------------------------- 
-# Required: link to APC page
 # Optional: breadcrumbs
 # breadcrumbs => list of tuples for every breadcrumb
+#
+# APCCrawler().connect()
+# -------------------------------------------------------- 
+# Required: link to APC page
 #
 # APCCrawler().parse()
 # --------------------------------------------------------
@@ -31,7 +34,7 @@ from bs4 import BeautifulSoup
 class APCCrawler:
 	# Reads url passed into class, parses data sheet as json,
 	# and applies that data, among other things, to a jinja2 template
-	def __init__(self, url, breadcrumbs=[]):
+	def __init__(self, breadcrumbs=[]):
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 		self.page = {
 			'Meta': dict(),
@@ -46,8 +49,10 @@ class APCCrawler:
 
 		self.breadcrumbs = breadcrumbs
 		self.techspecs_title_filters = ['Extended Run Options', 'PEP', 'EOLI']
+		self.software_options_filters = ['software', 'struxureware']
 
-		#  CONNECT ---------------------------------------------->
+	def connect(self, url):
+		# CONNECT ----------------------------------------------->
 		try:
 			self.request = urllib2.Request(url, None, {
 				'User-Agent':self.user_agent
@@ -132,11 +137,9 @@ class APCCrawler:
 			# 	- Services
 			#	- Software
 
-			software_filters = ['software', 'struxureware']
-
 			if option_number[0].lower() == 'w':
 				option_type = 'Services'
-			elif filter(lambda x: x in option_title.lower(), software_filters):
+			elif filter(lambda x: x in option_title.lower(), self.software_options_filters):
 				option_type = 'Software'
 			else:
 				option_type = 'Accessories'

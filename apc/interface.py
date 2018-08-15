@@ -27,7 +27,7 @@ def run_crawler(link):
 	socketio.emit('payload', 'Loading <a href="'+link+'" target="_blank">'+link+'</a>')
 
 	try:
-		scraper = APCCrawler(link)
+		scraper.connect(link)
 	except Exception:
 		socketio.emit('payload', '[Error] Not a valid URL')
 		return None  
@@ -73,4 +73,6 @@ def handle_log():
 	return render_template('logs.html', log=log)
 
 def run():
+	global scraper
+	scraper = APCCrawler()
 	socketio.run(app)
