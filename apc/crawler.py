@@ -123,12 +123,21 @@ class APCCrawler:
 		self.page['Meta']['includes'] = re.sub('\s\s+', ' ', self.page['Meta']['includes']).replace(' ,', ',')
 
 		# Includes ----------------------------------------------------->
-		options = self.soup.find('div', id='options')
-		for option in options.find_all('div', class_='option-item'):
-			option_title = option.find('a').get_text()
-			option_description = option.find('p').get_text()
+		options = self.soup.find('div', id='options') 
+		for option in options.find_all('div', class_='col-md-12'):
+			option_item = option.find('div', class_='option-item')
 
-			option_number = options.find('div', class_='part-no').get_text()
+			if option_item == None:
+				# There are multiple 'col-md-12' divs, find the right one
+				continue
+
+			option_title = option_item.find('a').get_text()
+			option_description = option_item.find('p').get_text()
+
+			if option_description == '': 
+				option_description = '...'
+
+			option_number = option.find('div', class_='part-no').get_text()
 			# Remove tabs and new lines
 			option_description = option_description.replace('\n', '').replace('\t', '')
 			option_number = option_number.replace('\n', '').replace('\t', '')
@@ -199,7 +208,6 @@ class APCCrawler:
 			template = template.render(
 				meta = self.page['Meta'],
 				techspecs = zip(self.page['Techspecs'], self.page['Headers']),
-				# Not used in template currently deprecated
 				options = self.page['Options']
 			).encode('utf-8')
 			t.write(template)
