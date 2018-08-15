@@ -130,6 +130,7 @@ class APCCrawler:
 
 			option_number = options.find('div', class_='part-no').get_text()
 			# Remove tabs and new lines
+			option_description = option_description.replace('\n', '').replace('\t', '')
 			option_number = option_number.replace('\n', '').replace('\t', '')
 
 			# 3 Available option types:
