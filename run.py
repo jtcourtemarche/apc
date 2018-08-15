@@ -27,3 +27,4 @@ if args.tool == 'clear':
 # Run GUI
 if __name__ == '__main__':
 	run()
+	

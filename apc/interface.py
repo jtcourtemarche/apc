@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
-from crawler import APCCrawler
-from tools import clear_output
+from apc.crawler import APCCrawler
+from apc.tools import clear_output
 
 app = Flask(__name__, 
 	template_folder='../templates', 
@@ -60,9 +60,8 @@ def handle_clear():
 	if request.method == 'POST':
 		clear_output()
 		return jsonify('Cleared output')
-	else:
-		# Accessing /clear directly
-		return redirect('/')
+	# Accessing /clear directly
+	return redirect('/')
 
 @app.route('/logs')
 def handle_log():
@@ -75,3 +74,4 @@ def run():
 	global scraper
 	scraper = APCCrawler()
 	socketio.run(app)
+	

@@ -130,7 +130,7 @@ class APCCrawler:
 			for option in options.find_all('div', class_='col-md-12'):
 				option_item = option.find('div', class_='option-item')
 
-				if option_item == None:
+				if option_item is None:
 					# There are multiple 'col-md-12' divs, find the right one
 					continue
 
