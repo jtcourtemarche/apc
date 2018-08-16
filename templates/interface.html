@@ -55,16 +55,37 @@
 						</div>
 					</form>
 					<button id='clear_button' class='btn btn-secondary'>Clear</button>
-					<button id='clear_output_button' class='btn btn-secondary'>Clear Output Folder</button>
 					<a href='/logs' target='_blank'>
 						<button class='btn btn-secondary'>View Logs</button>
 					</a>
+					<button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#settings-modal">
+						Settings
+					</button>
 				</div>
 				<div class='col'>
 					<div id='output-log'></div>
 				</div>
 			</div>
 		</div>	
+
+		<div class="modal fade" id="settings-modal">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title">Settings</h4>
+					</div>
+					<div class="modal-body">
+						<button id='clear_output_button' class='btn btn-secondary'>Clear Output Folder</button>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" data-dismiss="modal">
+							Close
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<script type="text/javascript" src="../static/js/main.js"></script>
 	</body>
 </html>

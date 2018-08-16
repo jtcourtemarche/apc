@@ -159,6 +159,7 @@ class APCCrawler:
 
 				self.page['Options'][option_type].append((option_title, option_description, option_number))
 			
+			# Sort options alphanumerically
 			for key, value in self.page['Options'].iteritems():
 				self.page['Options'][key] = sorted(value, key=lambda x: x[2])
 

@@ -61,6 +61,7 @@ def handle_run(form):
 def handle_clear():
 	if request.method == 'POST':
 		clear_output()
+		socketio.emit('payload', '[Complete] Cleared output folder')
 		return jsonify('Cleared output')
 	# Accessing /clear directly
 	return redirect('/')
