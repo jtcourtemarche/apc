@@ -122,7 +122,7 @@ class APCCrawler:
 
 		self.page['Meta']['includes'] = re.sub('\s\s+', ' ', self.page['Meta']['includes']).replace(' ,', ',')
 
-		# Includes ----------------------------------------------------->
+		# Options ------------------------------------------------------->
 		
 		try:
 			options = self.soup.find('div', id='options') 
@@ -158,7 +158,10 @@ class APCCrawler:
 					option_type = 'Accessories'
 
 				self.page['Options'][option_type].append((option_title, option_description, option_number))
-			#self.page['Options'] = sorted(self.page['Options'])
+			
+			for key, value in self.page['Options'].iteritems():
+				self.page['Options'][key] = sorted(value, key=lambda x: x[2])
+
 		except Exception:
 			self.page['Options'] = False
 

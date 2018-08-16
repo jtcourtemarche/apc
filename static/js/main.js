@@ -26,5 +26,5 @@ $('#clear_button').click(function() {
 	$('#output-log').empty();
 });
 $('#clear_output_button').click(function() {
-	$.post('/clear');
+	$.post('/clear'); 
 });
