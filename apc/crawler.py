@@ -104,6 +104,8 @@ class APCCrawler:
 			# Applicable to some older pages
 			self.page['Meta']['image'] = 'http:{}'.format(self.soup.find_all(id='DataDisplay')[0].get('src'))
 			
+		self.page['Meta']['img_type'] = '.jpg'
+
 		# Includes ----------------------------------------------------->
 		product_overview = self.soup.find_all(id='productoverview')[0]
 
@@ -185,7 +187,7 @@ class APCCrawler:
 			if not os.path.exists('{0}images'.format(output_dir)):
 				os.makedirs('{0}images'.format(output_dir))
 
-			with open('{0}images/{1}.jpg'.format(output_dir, self.page['Meta']['part_number']), 'wb') as img_f:
+			with open('{0}images/{1}{2}'.format(output_dir, self.page['Meta']['part_number'], self.page['Meta']['img_type']), 'wb') as img_f:
 				img_f.write(data.read())
 				img_f.close()
 		except URLError:
@@ -217,6 +219,122 @@ class APCCrawler:
 				meta = self.page['Meta'],
 				techspecs = zip(self.page['Techspecs'], self.page['Headers']),
 				options = self.page['Options']
+			).encode('utf-8')
+			t.write(template)
+			t.close()
+			
+		apc.tools.log('Created: '+self.page['Meta']['part_number'])
+		return self.page['Meta']['part_number']
+
+class VertivCrawler:
+	# Reads url passed into class, parses data sheet as json,
+	# and applies that data, among other things, to a jinja2 template
+	def __init__(self):
+		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
+		self.page = {
+			'Meta': dict(),
+			'Techspecs': [],
+			'Headers': [], 
+		}
+
+		self.techspecs_title_filters = []
+		self.software_options_filters = ['software', 'struxureware']
+
+	def connect(self, url):
+		# CONNECT ----------------------------------------------->
+		try:
+			self.request = urllib2.Request(url, None, {
+				'User-Agent':self.user_agent
+			})
+			self.data = urllib2.urlopen(self.request)
+		except URLError:
+			raise ValueError("Not a valid url!")
+
+		if (self.data.getcode() != 200):
+			raise ValueError('Error: {0!s}'.format(self.data.getcode()))
+		#  ------------------------------------------------------>
+
+		html = self.data.read()
+		self.soup = BeautifulSoup(html, 'html.parser')
+		
+		self.page['Meta']['full_description'] = self.soup.find('p', class_='product-hero-description').get_text()
+		self.page['Meta']['description'] = self.soup.find('h1', class_='productnamedata').get_text()
+
+		part_number = self.soup.find(class_='productnamedata').get_text().split(' ')
+		self.page['Meta']['part_number'] = part_number[1] + part_number[2]
+
+	def parse(self, write=False):
+		# Parse tech specs ---------------------------------------------->
+		page_div = self.soup.find_all('div', class_='prod-title')[0]
+		page_div = page_div.parent
+
+		for header in page_div.find_all('div', class_='data-list-holder'):
+			cheader = header.find('dl', class_='scrollable-list-heading').get_text()
+			if self.page['Headers']:
+				self.page['Headers'][len(self.page['Headers'])-1] = cheader
+			else:
+				self.page['Headers'].append(cheader)
+
+			for contents in header.find_all('dl', class_='scrollable-list-body'):
+				title = contents.find('dt').get_text()
+				description = contents.find('dd').get_text()
+				# Checks title filters 
+				if filter(lambda x: x in title, self.techspecs_title_filters):
+					continue
+
+				self.page['Techspecs'].append((title, description))
+				self.page['Headers'].append('*')
+
+		# Get image ---------------------------------------------------->
+		
+		image_holder = self.soup.find('div', class_='main-image-holder')
+		self.page['Meta']['image'] = 'http://www.vertivco.com'+image_holder.find('img').get('data-src')
+		self.page['Meta']['img_type'] = '.png'
+
+		if write:
+			output = json.dumps(self.page, sort_keys=True, indent=4)
+			with open('output.json', 'w') as f:
+				apc.tools.log('Writing {} to output.json'.format(self.page['Meta']['part_number']))
+				f.write(output)
+				f.close()
+		
+
+	def apply_template(self, template_dir='../templates/base.html', output_dir='output/'):
+		# Download part image ------------------------------------------>
+		try:
+			request = urllib2.Request(self.page['Meta']['image'], None, {
+				'User-Agent':self.user_agent
+			})
+			data = urllib2.urlopen(request)
+			
+			# Create image directory if it doesn't exist already
+			if not os.path.exists('{0}images'.format(output_dir)):
+				os.makedirs('{0}images'.format(output_dir))
+
+			with open('{0}images/{1}{2}'.format(output_dir, self.page['Meta']['part_number'], self.page['Meta']['img_type']), 'wb') as img_f:
+				img_f.write(data.read())
+				img_f.close()
+		except URLError:
+			raise ValueError("Error loading image URL")
+		except Exception as e:
+			raise ValueError("Image file download failed: {0!s}".format(e))
+
+		# Parse given template_dir variable ---------------------------->
+		path_indices = template_dir.split('/')
+		for var in enumerate(path_indices):
+			if '.html' in var[1]:
+				template_file = path_indices[var[0]]
+				template_dir = template_dir.split(var[1])[0]
+
+		self.env = Environment(
+			loader=PackageLoader('apc', template_dir),
+			autoescape=True
+		)
+		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
+			template = self.env.get_template(template_file)
+			template = template.render(
+				meta = self.page['Meta'],
+				techspecs = zip(self.page['Techspecs'], self.page['Headers'])
 			).encode('utf-8')
 			t.write(template)
 			t.close()
