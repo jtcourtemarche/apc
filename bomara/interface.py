@@ -17,7 +17,7 @@ app.config.update(
 socketio = SocketIO(app)
 
 crawl_settings = {
-	'write': True
+	'write': False
 }
 
 @app.route('/')
@@ -27,6 +27,7 @@ def index():
 def run_crawler(link):
 	socketio.emit('payload', 'Loading <a href="'+link+'" target="_blank">'+link+'</a>')
 
+	scraper = APCCrawler()
 	try:
 		scraper.connect(link)
 	except Exception:
@@ -74,6 +75,4 @@ def handle_log():
 	return render_template('logs.html', log=log)
 
 def run():
-	global scraper
-	scraper = APCCrawler()
 	socketio.run(app)

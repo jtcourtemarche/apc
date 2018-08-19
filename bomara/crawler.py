@@ -9,6 +9,21 @@ import bomara.tools
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
+# Example template directory
+template_dir = "../templates/base.html"
+
+# Parse given template_dir variable ---------------------------->
+path_indices = template_dir.split('/')
+for var in enumerate(path_indices):
+	if '.html' in var[1]:
+		template_file = path_indices[var[0]]
+		template_dir = template_dir.split(var[1])[0]
+
+env = Environment(
+	loader=PackageLoader('bomara', template_dir),
+	autoescape=True
+)
+
 #
 # APCCrawler()
 # -------------------------------------------------------- 
@@ -26,8 +41,7 @@ from bs4 import BeautifulSoup
 #
 # APCCrawler().apply_template()
 # --------------------------------------------------------
-# Optional: template_dir, output_dir
-# template_dir => template file location
+# Optional: output_dir
 # output_dir => directory to generate files to
 #
 
@@ -176,7 +190,7 @@ class APCCrawler:
 				f.write(output)
 				f.close()
 
-	def apply_template(self, template_dir='../templates/base.html', output_dir='output/'):
+	def apply_template(self, output_dir='output/'):
 		# Download part image ------------------------------------------>
 		try:
 			request = urllib2.Request(self.page['Meta']['image'], None, {
@@ -203,19 +217,8 @@ class APCCrawler:
 			breadcrumbs = map(lambda x: u"<a href='{0}'>{1}</a> »".format(x[1], x[0]), self.breadcrumbs) 
 			self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
 
-		# Parse given template_dir variable ---------------------------->
-		path_indices = template_dir.split('/')
-		for var in enumerate(path_indices):
-			if '.html' in var[1]:
-				template_file = path_indices[var[0]]
-				template_dir = template_dir.split(var[1])[0]
-
-		self.env = Environment(
-			loader=PackageLoader('bomara', template_dir),
-			autoescape=True
-		)
 		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
-			template = self.env.get_template(template_file)
+			template = env.get_template(template_file)
 			template = template.render(
 				meta = self.page['Meta'],
 				techspecs = zip(self.page['Techspecs'], self.page['Headers']),
@@ -299,7 +302,7 @@ class VertivCrawler:
 				f.write(output)
 				f.close()
 		
-	def apply_template(self, template_dir='../templates/base.html', output_dir='output/'):
+	def apply_template(self, output_dir='output/'):
 		# Download part image ------------------------------------------>
 		try:
 			request = urllib2.Request(self.page['Meta']['image'], None, {
@@ -319,19 +322,8 @@ class VertivCrawler:
 		except Exception as e:
 			raise ValueError("Image file download failed: {0!s}".format(e))
 
-		# Parse given template_dir variable ---------------------------->
-		path_indices = template_dir.split('/')
-		for var in enumerate(path_indices):
-			if '.html' in var[1]:
-				template_file = path_indices[var[0]]
-				template_dir = template_dir.split(var[1])[0]
-
-		self.env = Environment(
-			loader=PackageLoader('bomara', template_dir),
-			autoescape=True
-		)
 		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
-			template = self.env.get_template(template_file)
+			template = env.get_template(template_file)
 			template = template.render(
 				meta = self.page['Meta'],
 				techspecs = zip(self.page['Techspecs'], self.page['Headers']),
