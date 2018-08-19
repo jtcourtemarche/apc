@@ -2,7 +2,7 @@
 
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
-from bomara.crawler import APCCrawler
+import bomara.crawler
 from bomara.tools import clear_output
 
 app = Flask(__name__, 
@@ -17,7 +17,8 @@ app.config.update(
 socketio = SocketIO(app)
 
 crawl_settings = {
-	'write': False
+	'write': False,
+	'template': '../templates/base.html',
 }
 
 @app.route('/')
@@ -27,7 +28,9 @@ def index():
 def run_crawler(link):
 	socketio.emit('payload', 'Loading <a href="'+link+'" target="_blank">'+link+'</a>')
 
-	scraper = APCCrawler()
+	bomara.crawler.template_dir = crawl_settings['template']
+
+	scraper = bomara.crawler.APCCrawler()
 	try:
 		scraper.connect(link)
 	except Exception:

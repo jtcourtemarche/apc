@@ -9,20 +9,8 @@ import bomara.tools
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
-# Example template directory
-template_dir = "../templates/base.html"
-
-# Parse given template_dir variable ---------------------------->
-path_indices = template_dir.split('/')
-for var in enumerate(path_indices):
-	if '.html' in var[1]:
-		template_file = path_indices[var[0]]
-		template_dir = template_dir.split(var[1])[0]
-
-env = Environment(
-	loader=PackageLoader('bomara', template_dir),
-	autoescape=True
-)
+# Initialize template directory
+template_dir = None
 
 #
 # APCCrawler()
@@ -61,6 +49,7 @@ class APCCrawler:
 			}
 		}
 
+		self.template_dir = template_dir
 		self.breadcrumbs = []
 		self.techspecs_title_filters = ['Extended Run Options', 'PEP', 'EOLI']
 		self.software_options_filters = ['software', 'struxureware']
@@ -217,8 +206,20 @@ class APCCrawler:
 			breadcrumbs = map(lambda x: u"<a href='{0}'>{1}</a> »".format(x[1], x[0]), self.breadcrumbs) 
 			self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
 
+		# Parse given template_dir variable from interface ------------->
+		path_indices = self.template_dir.split('/')
+		for var in enumerate(path_indices):
+			if '.html' in var[1]:
+				template_file = path_indices[var[0]]
+				self.template_dir = self.template_dir.split(var[1])[0]
+
+		self.env = Environment(
+			loader=PackageLoader('bomara', self.template_dir),
+			autoescape=True
+		)
+
 		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
-			template = env.get_template(template_file)
+			template = self.env.get_template(template_file)
 			template = template.render(
 				meta = self.page['Meta'],
 				techspecs = zip(self.page['Techspecs'], self.page['Headers']),
@@ -241,6 +242,7 @@ class VertivCrawler:
 			'Headers': [], 
 		}
 
+		self.template_dir = template_dir
 		self.techspecs_title_filters = []
 		self.software_options_filters = ['software', 'struxureware']
 
@@ -322,8 +324,20 @@ class VertivCrawler:
 		except Exception as e:
 			raise ValueError("Image file download failed: {0!s}".format(e))
 
+		# Parse given template_dir variable from interface ------------->
+		path_indices = self.template_dir.split('/')
+		for var in enumerate(path_indices):
+			if '.html' in var[1]:
+				template_file = path_indices[var[0]]
+				self.template_dir = self.template_dir.split(var[1])[0]
+
+		self.env = Environment(
+			loader=PackageLoader('bomara', self.template_dir),
+			autoescape=True
+		)
+
 		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
-			template = env.get_template(template_file)
+			template = self.env.get_template(template_file)
 			template = template.render(
 				meta = self.page['Meta'],
 				techspecs = zip(self.page['Techspecs'], self.page['Headers']),
