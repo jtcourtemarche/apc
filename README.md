@@ -1,8 +1,12 @@
 ![APC Crawler](https://raw.githubusercontent.com/jtcourtemarche/apc/master/static/img/logo.jpg)
 
-Web interface that converts data sheets from APC's website to HTML templates.
+Web interface that converts data sheets from various vendors websites to HTML templates.
 
 Currently written for Python 2.7.15
+
+## Supported vendors:
+⋅⋅* APC
+⋅⋅* Avocent/Vertiv 
 
 ## How to use
 ```

@@ -5,7 +5,7 @@ import urllib2
 import json
 import re
 import os
-import apc.tools
+import bomara.tools
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
@@ -172,7 +172,7 @@ class APCCrawler:
 		if write:
 			output = json.dumps(self.page, sort_keys=True, indent=4)
 			with open('output.json', 'w') as f:
-				apc.tools.log('Writing {} to output.json'.format(self.page['Meta']['part_number']))
+				bomara.tools.log('Writing {} to output.json'.format(self.page['Meta']['part_number']))
 				f.write(output)
 				f.close()
 
@@ -211,7 +211,7 @@ class APCCrawler:
 				template_dir = template_dir.split(var[1])[0]
 
 		self.env = Environment(
-			loader=PackageLoader('apc', template_dir),
+			loader=PackageLoader('bomara', template_dir),
 			autoescape=True
 		)
 		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
@@ -224,7 +224,7 @@ class APCCrawler:
 			t.write(template)
 			t.close()
 			
-		apc.tools.log('Created: '+self.page['Meta']['part_number'])
+		bomara.tools.log('Created: '+self.page['Meta']['part_number'])
 		return self.page['Meta']['part_number']
 
 class VertivCrawler:
@@ -295,11 +295,10 @@ class VertivCrawler:
 		if write:
 			output = json.dumps(self.page, sort_keys=True, indent=4)
 			with open('output.json', 'w') as f:
-				apc.tools.log('Writing {} to output.json'.format(self.page['Meta']['part_number']))
+				bomara.tools.log('Writing {} to output.json'.format(self.page['Meta']['part_number']))
 				f.write(output)
 				f.close()
 		
-
 	def apply_template(self, template_dir='../templates/base.html', output_dir='output/'):
 		# Download part image ------------------------------------------>
 		try:
@@ -328,17 +327,17 @@ class VertivCrawler:
 				template_dir = template_dir.split(var[1])[0]
 
 		self.env = Environment(
-			loader=PackageLoader('apc', template_dir),
+			loader=PackageLoader('bomara', template_dir),
 			autoescape=True
 		)
 		with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
 			template = self.env.get_template(template_file)
 			template = template.render(
 				meta = self.page['Meta'],
-				techspecs = zip(self.page['Techspecs'], self.page['Headers'])
+				techspecs = zip(self.page['Techspecs'], self.page['Headers']),
 			).encode('utf-8')
 			t.write(template)
 			t.close()
 			
-		apc.tools.log('Created: '+self.page['Meta']['part_number'])
+		bomara.tools.log('Created: '+self.page['Meta']['part_number'])
 		return self.page['Meta']['part_number']

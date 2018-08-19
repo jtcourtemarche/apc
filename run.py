@@ -2,9 +2,8 @@
 
 import argparse
 
-from apc.interface import run
-from apc.crawler import VertivCrawler
-from apc.tools import clear_output
+from bomara.interface import run
+from bomara.tools import clear_output
 
 # Load args ------------------------->
 
@@ -26,9 +25,5 @@ if args.tool == 'clear':
 
 # Run GUI
 if __name__ == '__main__':
-	#run()
-	vertiv = VertivCrawler()
-	vertiv.connect(args.tool)
-	vertiv.parse(write=True)
-	vertiv.apply_template()
+	run()
 	

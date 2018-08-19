@@ -2,8 +2,8 @@
 
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
-from apc.crawler import APCCrawler
-from apc.tools import clear_output
+from bomara.crawler import APCCrawler
+from bomara.tools import clear_output
 
 app = Flask(__name__, 
 	template_folder='../templates', 
@@ -16,8 +16,8 @@ app.config.update(
 
 socketio = SocketIO(app)
 
-apc_settings = {
-	'write': False
+crawl_settings = {
+	'write': True
 }
 
 @app.route('/')
@@ -35,7 +35,7 @@ def run_crawler(link):
 
 	socketio.emit('payload', 'Parsing link')
 	try:
-		scraper.parse(apc_settings['write'])
+		scraper.parse(crawl_settings['write'])
 	except Exception as e:
 		socketio.emit('payload', '[Error] Could not parse URL: {}'.format(e))
 
@@ -50,7 +50,7 @@ def run_crawler(link):
 @socketio.on('set')
 def change_settings(settings):
 	# Wrapper for changing crawler settings
-	apc_settings[settings[0]] = settings[1]
+	crawl_settings[settings[0]] = settings[1]
 
 @socketio.on('run_crawler')
 def handle_run(form):

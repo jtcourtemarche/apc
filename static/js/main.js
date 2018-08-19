@@ -28,4 +28,3 @@ $('#clear_button').click(function() {
 $('#clear_output_button').click(function() {
 	$.post('/clear'); 
 });
-
