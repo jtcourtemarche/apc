@@ -16,7 +16,6 @@ def log(string, write=True):
                 l.write(string)
                 l.close()
 
-
 def clear_output(output_dir='output/'):
     for page in os.listdir(output_dir):
         if os.path.isfile(output_dir+page):
@@ -27,9 +26,15 @@ def clear_output(output_dir='output/'):
     log('Output cleared', write=True)
 
 def process_family_links(vendor, part_list, family_name, family_description):
+    part_numbers = []
+    part_descriptions = []
     if vendor == 'Vertiv':
         for link in part_list:
             scraper = bomara.crawler.VertivCrawler()
             scraper.connect(link)
-            scraper.parse(family=(family_name, family_description))
+            scraper.parse(family_member=(family_name, family_description))
             scraper.apply_template()
+
+            part_numbers.append(scraper.page['Meta']['part_number'])
+            part_descriptions.append(scraper.page['Meta']['description'])
+        return zip(part_numbers, part_descriptions)

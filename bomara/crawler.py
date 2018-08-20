@@ -254,6 +254,10 @@ class VertivCrawler:
             'Meta': dict(),
             'Techspecs': [],
             'Headers': [],
+            'BF': {
+                'Benefits': [],
+                'Features': []
+            }
         }
 
         self.parser_warning = None
@@ -313,14 +317,17 @@ class VertivCrawler:
                 self.page['Techspecs'].append((title, description))
                 self.page['Headers'].append('*')
 
-    def parse(self, write=False, family=None):
+    def parse(self, write=False, family_member=None):
         # Check if valid product page ----------------------------------->
         if self.soup.find('span', class_='subtitle').get_text() == 'Product Family':
             family_links = []
             for link in self.soup.find_all('a', class_='same-height-target'):
                 family_links.append("http://www.vertivco.com" + link.get('href'))
             
-            bomara.tools.process_family_links('Vertiv', family_links, self.page['Meta']['part_number'], self.page['Meta']['description'])
+            family_data = bomara.tools.process_family_links('Vertiv', family_links, self.page['Meta']['part_number'], self.page['Meta']['description'])
+
+            self.page['Meta']['breadcrumbs'] = self.page['Meta']['description'].replace('Avocent', '').replace('Vertiv', '')
+            self.page['Meta']['family'] = family_data
         else:
             # Parse tech specs ------------------------------------------>
             try:
@@ -331,10 +338,21 @@ class VertivCrawler:
                 # No tech specs available
                 self.parser_warning = "This page doesn't have any tech specs"
         
-        # Parse tech specs ------------------------------------------>
-        if family:
+        # Parse benefits & features ------------------------------------->
+        benefits_features = self.soup.find('div', id='benefits-features')
+        for pc in enumerate(benefits_features.find_all('div', class_='presentation-content')):
+            if pc[0] == 0:
+                htype = 'Benefits'
+            elif pc[0] == 1:
+                htype = 'Features'
+
+            for c in pc[1].find_all('div', title='BM SideBar Bullet'):
+                self.page['BF'][htype].append(c.get_text())
+
+        # Parse family breadcrumbs -------------------------------------->
+        if family_member:
             self.page['Meta']['breadcrumbs'] = "<a href='{0}.htm'>{1}</a>".format(
-                family[0], family[1].replace('Avocent', '').replace('Vertiv', ''))
+                family_member[0], family_member[1].replace('Avocent', '').replace('Vertiv', ''))
 
         # Get image ---------------------------------------------------->
 
@@ -388,6 +406,7 @@ class VertivCrawler:
             template = template.render(
                 meta=self.page['Meta'],
                 techspecs=zip(self.page['Techspecs'], self.page['Headers']),
+                bf=self.page['BF']
             ).encode('utf-8')
             t.write(template)
             t.close()

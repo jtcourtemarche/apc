@@ -31,6 +31,9 @@ def index():
 def run_crawler(link):
     bomara.crawler.template_dir = crawl_settings['template']
 
+    # Remove anchor from link
+    link = link.split('#')[0]
+
     if 'vertivco.com' in link:
         scraper = bomara.crawler.VertivCrawler()
     elif 'apc.com' in link:
