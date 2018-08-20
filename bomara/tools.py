@@ -2,7 +2,7 @@
 
 import os
 import datetime
-
+import bomara.crawler
 
 def log(string, write=True):
     string = '[{0}] {1}\n'.format(datetime.datetime.now(), string)
@@ -25,3 +25,11 @@ def clear_output(output_dir='output/'):
     for image in os.listdir('{}/images'.format(output_dir)):
         os.remove(output_dir + '/images/' + image)
     log('Output cleared', write=True)
+
+def process_family_links(vendor, part_list, family_name, family_description):
+    if vendor == 'Vertiv':
+        for link in part_list:
+            scraper = bomara.crawler.VertivCrawler()
+            scraper.connect(link)
+            scraper.parse(family=(family_name, family_description))
+            scraper.apply_template()

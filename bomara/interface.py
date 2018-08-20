@@ -30,13 +30,13 @@ def index():
 
 def run_crawler(link):
     bomara.crawler.template_dir = crawl_settings['template']
-    
+
     if 'vertivco.com' in link:
         scraper = bomara.crawler.VertivCrawler()
     elif 'apc.com' in link:
         scraper = bomara.crawler.APCCrawler()
     else:
-        socketio.emit('payload', '[Error] Not a valid vendor')
+        socketio.emit('payload', '[Error] Not a valid vendor/URL')
         return None
 
     socketio.emit('payload', 'Loading <a href="' +
@@ -53,6 +53,10 @@ def run_crawler(link):
         scraper.parse(crawl_settings['write'])
     except Exception as e:
         socketio.emit('payload', '[Error] Could not parse URL: {}'.format(e))
+        return None
+
+    if scraper.parser_warning:
+        socketio.emit('payload', '[Warning] {}'.format(scraper.parser_warning))
 
     socketio.emit('payload', 'Applying template')
     try:
@@ -60,6 +64,7 @@ def run_crawler(link):
     except Exception as e:
         socketio.emit(
             'payload', '[Error] Could not render template: {}'.format(e))
+        return None
 
     socketio.emit('payload', '[Complete] '+part_num)
 

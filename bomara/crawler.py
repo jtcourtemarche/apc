@@ -245,7 +245,6 @@ class APCCrawler:
         bomara.tools.log('Created: '+self.page['Meta']['part_number'])
         return self.page['Meta']['part_number']
 
-
 class VertivCrawler:
     # Reads url passed into class, parses data sheet as json,
     # and applies that data, among other things, to a jinja2 template
@@ -257,7 +256,8 @@ class VertivCrawler:
             'Headers': [],
         }
 
-        self.page['Meta']['vendor'] = 'Vertiv/Avocent'
+        self.parser_warning = None
+        self.page['Meta']['vendor'] = 'Vertiv / Avocent'
         self.template_dir = template_dir
         self.techspecs_title_filters = []
         self.software_options_filters = ['software', 'struxureware']
@@ -279,18 +279,20 @@ class VertivCrawler:
         html = self.data.read()
         self.soup = BeautifulSoup(html, 'html.parser')
 
-        self.page['Meta']['full_description'] = self.soup.find(
+        self.page['Meta']['includes'] = self.soup.find(
             'p', class_='product-hero-description').get_text()
         self.page['Meta']['description'] = self.soup.find(
             'h1', class_='productnamedata').get_text()
 
         part_number = self.soup.find(
             class_='productnamedata').get_text().split(' ')
-        self.page['Meta']['part_number'] = part_number[1] + part_number[2]
 
-    def parse(self, write=False):
-        # Parse tech specs ---------------------------------------------->
-        page_div = self.soup.find_all('div', class_='prod-title')[0]
+        if part_number[2] == 'Serial':
+            self.page['Meta']['part_number'] = part_number[1] 
+        else:
+            self.page['Meta']['part_number'] = part_number[1] + part_number[2]
+
+    def parse_techspecs(self, page_div):
         page_div = page_div.parent
 
         for header in page_div.find_all('div', class_='data-list-holder'):
@@ -310,6 +312,29 @@ class VertivCrawler:
 
                 self.page['Techspecs'].append((title, description))
                 self.page['Headers'].append('*')
+
+    def parse(self, write=False, family=None):
+        # Check if valid product page ----------------------------------->
+        if self.soup.find('span', class_='subtitle').get_text() == 'Product Family':
+            family_links = []
+            for link in self.soup.find_all('a', class_='same-height-target'):
+                family_links.append("http://www.vertivco.com" + link.get('href'))
+            
+            bomara.tools.process_family_links('Vertiv', family_links, self.page['Meta']['part_number'], self.page['Meta']['description'])
+        else:
+            # Parse tech specs ------------------------------------------>
+            try:
+                page_div = self.soup.find_all('div', class_='prod-title')[0]
+                page_div = page_div.parent
+                self.parse_techspecs(page_div)
+            except:
+                # No tech specs available
+                self.parser_warning = "This page doesn't have any tech specs"
+        
+        # Parse tech specs ------------------------------------------>
+        if family:
+            self.page['Meta']['breadcrumbs'] = "<a href='{0}.htm'>{1}</a>".format(
+                family[0], family[1].replace('Avocent', '').replace('Vertiv', ''))
 
         # Get image ---------------------------------------------------->
 

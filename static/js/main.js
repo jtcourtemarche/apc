@@ -15,8 +15,9 @@ socket.on('payload', function(data) {
 	} else if (data.includes('[Error]')) {
 		$('#output-log').append('<div class="alert alert-danger" role="alert">'+ data +'</div><hr>');	
 		$('textarea').prop('disabled', false);
-	}
-	else {
+	} else if (data.includes('[Warning]')) {
+		$('#output-log').append('<div class="alert alert-warning" role="alert">'+ data +'</div>');	
+	} else {
 		$('#output-log').append('<span>'+data+'</span><br/>');
 	}
 });
