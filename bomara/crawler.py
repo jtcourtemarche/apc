@@ -63,7 +63,7 @@ class APCCrawler:
                 'User-Agent': self.user_agent
             })
             self.data = urllib2.urlopen(self.request)
-        except URLError:
+        except urllib2.URLError:
             raise ValueError("Not a valid url!")
 
         if (self.data.getcode() != 200):
@@ -207,7 +207,7 @@ class APCCrawler:
             with open('{0}images/{1}{2}'.format(output_dir, self.page['Meta']['part_number'], self.page['Meta']['img_type']), 'wb') as img_f:
                 img_f.write(data.read())
                 img_f.close()
-        except URLError:
+        except urllib2.URLError:
             raise ValueError("Error loading image URL")
         except Exception as e:
             raise ValueError("Image file download failed: {0!s}".format(e))
@@ -269,7 +269,7 @@ class VertivCrawler:
                 'User-Agent': self.user_agent
             })
             self.data = urllib2.urlopen(self.request)
-        except URLError:
+        except urllib2.URLError:
             raise ValueError("Not a valid url!")
 
         if (self.data.getcode() != 200):
@@ -341,7 +341,7 @@ class VertivCrawler:
             with open('{0}images/{1}{2}'.format(output_dir, self.page['Meta']['part_number'], self.page['Meta']['img_type']), 'wb') as img_f:
                 img_f.write(data.read())
                 img_f.close()
-        except URLError:
+        except urllib2.URLError:
             raise ValueError("Error loading image URL")
         except Exception as e:
             raise ValueError("Image file download failed: {0!s}".format(e))
