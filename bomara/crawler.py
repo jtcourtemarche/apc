@@ -50,6 +50,7 @@ class APCCrawler:
             }
         }
 
+        self.page['Meta']['vendor'] = 'APC'
         self.template_dir = template_dir
         self.breadcrumbs = []
         self.techspecs_title_filters = ['Extended Run Options', 'PEP', 'EOLI']
@@ -256,6 +257,7 @@ class VertivCrawler:
             'Headers': [],
         }
 
+        self.page['Meta']['vendor'] = 'Vertiv/Avocent'
         self.template_dir = template_dir
         self.techspecs_title_filters = []
         self.software_options_filters = ['software', 'struxureware']

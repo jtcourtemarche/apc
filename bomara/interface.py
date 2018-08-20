@@ -11,11 +11,12 @@ app = Flask(__name__,
 
 app.config.update(
     TEMPLATE_AUTO_RELOAD=True,
-    DEBUG=True
+    DEBUG=True,
+    TESTING=True
 )
 
 socketio = SocketIO(app)
-
+    
 crawl_settings = {
     'write': False,
     'template': '../templates/base.html',
@@ -28,12 +29,19 @@ def index():
 
 
 def run_crawler(link):
+    bomara.crawler.template_dir = crawl_settings['template']
+    
+    if 'vertivco.com' in link:
+        scraper = bomara.crawler.VertivCrawler()
+    elif 'apc.com' in link:
+        scraper = bomara.crawler.APCCrawler()
+    else:
+        socketio.emit('payload', '[Error] Not a valid vendor')
+        return None
+
     socketio.emit('payload', 'Loading <a href="' +
                   link+'" target="_blank">'+link+'</a>')
 
-    bomara.crawler.template_dir = crawl_settings['template']
-
-    scraper = bomara.crawler.APCCrawler()
     try:
         scraper.connect(link)
     except Exception:
