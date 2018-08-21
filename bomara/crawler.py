@@ -294,7 +294,7 @@ class VertivCrawler:
         if part_number[2] == 'Serial' or part_number[2] == 'Secure' or part_number[2] == 'Advanced':
             self.page['Meta']['part_number'] = part_number[1] 
         else:
-            self.page['Meta']['part_number'] = part_number[1] + part_number[2]
+            self.page['Meta']['part_number'] = (part_number[1] + part_number[2]).replace('"', '')
 
     def parse_techspecs(self, page_div):
         page_div = page_div.parent
