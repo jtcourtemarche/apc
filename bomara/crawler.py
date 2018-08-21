@@ -291,7 +291,8 @@ class VertivCrawler:
         part_number = self.soup.find(
             class_='productnamedata').get_text().split(' ')
 
-        if part_number[2] == 'Serial' or part_number[2] == 'Secure' or part_number[2] == 'Advanced':
+        pnfilters = ['Serial', 'Secure', 'Advanced', 'Management', 'Digital', 'Basic']
+        if filter(lambda x: x == part_number[2], pnfilters):
             self.page['Meta']['part_number'] = part_number[1] 
         else:
             self.page['Meta']['part_number'] = (part_number[1] + part_number[2]).replace('"', '')
