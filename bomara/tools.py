@@ -28,6 +28,7 @@ def clear_output(output_dir='output/'):
 def process_family_links(vendor, part_list, family_name, family_description):
     part_numbers = []
     part_descriptions = []
+    part_names = []
     if vendor == 'Vertiv':
         for link in part_list:
             scraper = bomara.crawler.VertivCrawler()
@@ -36,5 +37,6 @@ def process_family_links(vendor, part_list, family_name, family_description):
             scraper.apply_template()
 
             part_numbers.append(scraper.page['Meta']['part_number'])
-            part_descriptions.append(scraper.page['Meta']['description'])
-        return zip(part_numbers, part_descriptions)
+            part_descriptions.append(scraper.page['Meta']['includes'])
+            part_names.append(scraper.page['Meta']['description'])
+        return zip(part_numbers, part_descriptions, part_names)
