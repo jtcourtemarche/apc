@@ -291,7 +291,7 @@ class VertivCrawler:
         part_number = self.soup.find(
             class_='productnamedata').get_text().split(' ')
 
-        if part_number[2] == 'Serial':
+        if part_number[2] == 'Serial' or part_number[2] == 'Secure' or part_number[2] == 'Advanced':
             self.page['Meta']['part_number'] = part_number[1] 
         else:
             self.page['Meta']['part_number'] = part_number[1] + part_number[2]
@@ -355,11 +355,13 @@ class VertivCrawler:
                 family_member[0], family_member[1].replace('Avocent', '').replace('Vertiv', ''))
 
         # Get image ---------------------------------------------------->
-
-        image_holder = self.soup.find('div', class_='main-image-holder')
-        self.page['Meta']['image'] = 'http://www.vertivco.com' + \
-            image_holder.find('img').get('data-src')
-        self.page['Meta']['img_type'] = '.png'
+        try:
+            image_holder = self.soup.find('div', class_='main-image-holder')
+            self.page['Meta']['image'] = 'http://www.vertivco.com' + \
+                image_holder.find('img').get('data-src')
+            self.page['Meta']['img_type'] = '.png'
+        except:
+            self.page['Meta']['image'] = None
 
         if write:
             output = json.dumps(self.page, sort_keys=True, indent=4)
@@ -371,23 +373,24 @@ class VertivCrawler:
 
     def apply_template(self, output_dir='output/'):
         # Download part image ------------------------------------------>
-        try:
-            request = urllib2.Request(self.page['Meta']['image'], None, {
-                'User-Agent': self.user_agent
-            })
-            data = urllib2.urlopen(request)
+        if self.page['Meta']['image']:
+            try:
+                request = urllib2.Request(self.page['Meta']['image'], None, {
+                    'User-Agent': self.user_agent
+                })
+                data = urllib2.urlopen(request)
 
-            # Create image directory if it doesn't exist already
-            if not os.path.exists('{0}images'.format(output_dir)):
-                os.makedirs('{0}images'.format(output_dir))
+                # Create image directory if it doesn't exist already
+                if not os.path.exists('{0}images'.format(output_dir)):
+                    os.makedirs('{0}images'.format(output_dir))
 
-            with open('{0}images/{1}{2}'.format(output_dir, self.page['Meta']['part_number'], self.page['Meta']['img_type']), 'wb') as img_f:
-                img_f.write(data.read())
-                img_f.close()
-        except urllib2.URLError:
-            raise ValueError("Error loading image URL")
-        except Exception as e:
-            raise ValueError("Image file download failed: {0!s}".format(e))
+                with open('{0}images/{1}{2}'.format(output_dir, self.page['Meta']['part_number'], self.page['Meta']['img_type']), 'wb') as img_f:
+                    img_f.write(data.read())
+                    img_f.close()
+            except urllib2.URLError:
+                raise ValueError("Error loading image URL")
+            except Exception as e:
+                raise ValueError("Image file download failed: {0!s}".format(e))
 
         # Parse given template_dir variable from interface ------------->
         path_indices = self.template_dir.split('/')
