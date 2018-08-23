@@ -75,6 +75,9 @@ class Crawler:
     def reset(self):
         self.page = self.schema
         self.page['Headers'] = []
+        self.page['Techspecs'] = []
+        self.page['Meta'] = dict()
+
         self.parser_warning = None
         self.page['Meta']['vendor'] = self.vendor
 
