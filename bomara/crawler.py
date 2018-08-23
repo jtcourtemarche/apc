@@ -50,6 +50,7 @@ class APCCrawler:
             }
         }
 
+        self.parser_warning = None
         self.page['Meta']['vendor'] = 'APC'
         self.template_dir = template_dir
         self.breadcrumbs = []
