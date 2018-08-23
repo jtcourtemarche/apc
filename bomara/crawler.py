@@ -177,10 +177,15 @@ class APCCrawler:
                 self.page['Options'][option_type].append(
                     (option_title, option_description, option_number))
 
-            # Sort options alphanumerically
+            # Sort options alphanumerically / remove if they are empty
+            dead_keys = []
             for key, value in self.page['Options'].iteritems():
-                self.page['Options'][key] = sorted(value, key=lambda x: x[2])
-
+                if value == []:
+                    dead_keys.append(key)
+                else:
+                    self.page['Options'][key] = sorted(value, key=lambda x: x[2])
+        
+            for key in dead_keys: self.page['Options'].pop(key, None)
         except Exception:
             self.page['Options'] = False
 
