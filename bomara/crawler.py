@@ -3,207 +3,121 @@
 
 import urllib2
 import json
-import re
 import os
 import bomara.tools
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
-# Initialize template directory
-template_dir = None
-
 #
-# APCCrawler()
+# Crawler()
 # --------------------------------------------------------
-# Optional: breadcrumbs
-# breadcrumbs => list of tuples for every breadcrumb
+# See example below
 #
-# APCCrawler().connect()
+# Crawler().connect()
 # --------------------------------------------------------
 # Required: link to APC page
 #
-# APCCrawler().parse()
-# --------------------------------------------------------
-# Optional: write
-# write => outputs parsing results to a json file (output.json)
-#
-# APCCrawler().apply_template()
+# Crawler().apply()
 # --------------------------------------------------------
 # Optional: output_dir
 # output_dir => directory to generate files to
 #
 
-
-class APCCrawler:
-    # Reads url passed into class, parses data sheet as json,
-    # and applies that data, among other things, to a jinja2 template
-    def __init__(self):
-        self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-        self.page = {
-            'Meta': dict(),
-            'Techspecs': [],
-            'Headers': [],
-            'Options': {
-                'Accessories': [],
-                'Services': [],
-                'Software': [],
-            }
+""" Example
+crawler = Crawler(
+    # Vendor name
+    vendor = 'APC',
+    schema = {
+        # Required
+        'Meta': dict(),
+        # Required
+        'Techspecs': [],
+        # Required
+        'Headers': [],
+        # Optional
+        'Options': {
+            'Accessories': [],
+            'Services': [], 
+            'Software': []
         }
+    },
+    # Ignored tech specs headers
+    ignored_headers = ['Extended Run Options', 'PEP', 'EOLI'],
+    # Mostly APC exclusive
+    software_identifiers = ['software', 'struxureware'],
 
+    # Required returns: 
+    #   self.page['Meta']['part_number', 'img_url', 'img_type']
+    #   self.page['Techspecs', 'Headers']
+    parser = parser(),
+)
+"""
+
+class Crawler:
+    def __init__(
+        self, vendor, schema, parser, parser_args=[], ignored_headers=[], software_identifiers=[]):
+
+        # Initializers
+        self.vendor = vendor
+        self.schema = schema
+        self.i_parser = parser
+        self.i_parser_args = parser_args
+        self.i_ignored_headers = ignored_headers
+        self.i_software_identifiers = software_identifiers
+
+        # Constants
+        self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
+        # Not currently supported
+        self.breadcrumbs = [('Symmetra Family', 'symmetra-family.htm'), ('Symmetra RM', 'symmetra-rm.htm')]
+
+        self.reset()
+
+    def reset(self):
+        self.page = self.schema
+        self.page['Headers'] = []
         self.parser_warning = None
-        self.page['Meta']['vendor'] = 'APC'
-        self.template_dir = template_dir
-        self.breadcrumbs = []
-        self.techspecs_title_filters = ['Extended Run Options', 'PEP', 'EOLI']
-        self.software_options_filters = ['software', 'struxureware']
+        self.page['Meta']['vendor'] = self.vendor
+
+        self.ignored_headers = self.i_ignored_headers
+        self.software_identifiers = self.i_software_identifiers
+
+        self.parse = self.i_parser
+        self.soup = None
 
     def connect(self, url):
-        # CONNECT ----------------------------------------------->
+        # Connect
         try:
-            self.request = urllib2.Request(url, None, {
+            request = urllib2.Request(url, None, {
                 'User-Agent': self.user_agent
             })
-            self.data = urllib2.urlopen(self.request)
+            data = urllib2.urlopen(request)
         except urllib2.URLError:
             raise ValueError("Not a valid url!")
 
-        if (self.data.getcode() != 200):
-            raise ValueError('Error: {0!s}'.format(self.data.getcode()))
-        #  ------------------------------------------------------>
+        if (data.getcode() != 200):
+            raise ValueError('Error: {0!s}'.format(data.getcode()))
 
-        html = self.data.read()
-        self.soup = BeautifulSoup(html, 'html.parser')
+        html = data.read()
+        self.soup = BeautifulSoup(html, 'html.parser')   
 
-    def parse(self, write=False):
-        # Get description & part number ---------------------------------->
-        self.page['Meta']['description'] = self.soup.find(
-            class_='page-header').get_text()
-        self.page['Meta']['part_number'] = self.soup.find(
-            class_='part-number').get_text()
-
-        # Parse tech specs ---------------------------------------------->
-        page_div = self.soup.find('div', id='techspecs')
-        techspecs = []
-        for header in page_div.find_all('h4'):
-            cheader = header.contents[0]
-            cheader = cheader.replace('&amp;', '&')
-
-            if self.page['Headers']:
-                self.page['Headers'][len(self.page['Headers'])-1] = cheader
-            else:
-                self.page['Headers'].append(cheader)
-
-            list_item = header.find_next_sibling('ul', class_='table-normal')
-            for contents in list_item.find_all(class_='col-md-12'):
-                for title in contents.find(class_='col-md-3 bold'):
-                    # Checks title filters
-                    if filter(lambda x: x in title, self.techspecs_title_filters):
-                        continue
-
-                    contents = contents.get_text(
-                        ' ', strip=True).replace(title, '')
-
-                    self.page['Techspecs'].append((title, contents))
-                    self.page['Headers'].append('*')
-
-        # Get image ---------------------------------------------------->
+    def apply(self, output_dir='output/', template='base.html', write=False):
         try:
-            # Newer pages
-            self.page['Meta']['image'] = 'http:{}'.format(
-                self.soup.find_all(class_='img-responsive')[0].get('src'))
-        except Exception:
-            # Applicable to some older pages
-            self.page['Meta']['image'] = 'http:{}'.format(
-                self.soup.find_all(id='DataDisplay')[0].get('src'))
-
-        self.page['Meta']['img_type'] = '.jpg'
-
-        # Includes ----------------------------------------------------->
-        product_overview = self.soup.find_all(id='productoverview')[0]
-
-        # Default includes to none
-        self.page['Meta']['includes'] = ''
-        try:
-            # Test for explicit reference to includes
-            # -> Usually found in older pages
-            self.page['Meta']['includes'] = self.soup.find(
-                class_='includes').get_text()
-        except Exception:
-            # Scan for includes instead
-            for p in product_overview.find_all('p'):
-                if 'Includes' in p.get_text():
-                    self.page['Meta']['includes'] = p.get_text()
-                    break
-
-        self.page['Meta']['includes'] = re.sub(
-            '\s\s+', ' ', self.page['Meta']['includes']).replace(' ,', ',')
-
-        # Options ------------------------------------------------------->
-
-        try:
-            options = self.soup.find('div', id='options')
-
-            for option in options.find_all('div', class_='col-md-12'):
-                option_item = option.find('div', class_='option-item')
-
-                if option_item is None:
-                    # There are multiple 'col-md-12' divs, find the right one
-                    continue
-
-                option_title = option_item.find('a').get_text()
-                option_description = option_item.find('p').get_text()
-
-                if option_description == '':
-                    option_description = '...'
-
-                option_number = option.find('div', class_='part-no').get_text()
-                # Remove tabs and new lines
-                option_description = option_description.replace(
-                    '\n', '').replace('\t', '')
-                option_number = option_number.replace(
-                    '\n', '').replace('\t', '')
-
-                # 3 Available option types:
-                # 	- Accessories
-                # 	- Services
-                #	- Software
-
-                if option_number[0].lower() == 'w':
-                    option_type = 'Services'
-                elif filter(lambda x: x in option_title.lower(), self.software_options_filters):
-                    option_type = 'Software'
-                else:
-                    option_type = 'Accessories'
-
-                self.page['Options'][option_type].append(
-                    (option_title, option_description, option_number))
-
-            # Sort options alphanumerically / remove if they are empty
-            dead_keys = []
-            for key, value in self.page['Options'].iteritems():
-                if value == []:
-                    dead_keys.append(key)
-                else:
-                    self.page['Options'][key] = sorted(value, key=lambda x: x[2])
-        
-            for key in dead_keys: self.page['Options'].pop(key, None)
+            self.parse(self)
         except Exception as e:
-            self.page['Options'] = False
-            self.parser_warning = 'No options on this page: {}'.format(e)
+            raise ValueError('Failed to parse: {}'.format(e))
 
-        # Write provides a JSON data sheet ----------------------------->
+        # Write provides a JSON data sheet
         if write:
             output = json.dumps(self.page, sort_keys=True, indent=4)
-            with open('output.json', 'w') as f:
+            with open(output_dir+'output.json', 'w') as f:
                 bomara.tools.log('Writing {} to output.json'.format(
                     self.page['Meta']['part_number']))
                 f.write(output)
                 f.close()
 
-    def apply_template(self, output_dir='output/'):
-        # Download part image ------------------------------------------>
+        # Download part image 
         try:
-            request = urllib2.Request(self.page['Meta']['image'], None, {
+            request = urllib2.Request(self.page['Meta']['img_url'], None, {
                 'User-Agent': self.user_agent
             })
             data = urllib2.urlopen(request)
@@ -220,28 +134,25 @@ class APCCrawler:
         except Exception as e:
             raise ValueError("Image file download failed: {0!s}".format(e))
 
-        # Breadcrumbs -------------------------------------------------->
+        # Breadcrumbs 
         if not self.breadcrumbs:
             self.page['Meta']['breadcrumbs'] = ''
         else:
             breadcrumbs = map(
-                lambda x: u"<a href='{0}'>{1}</a> »".format(x[1], x[0]), self.breadcrumbs)
+                lambda x: u"<a href='{0}'>{1}</a> » ".format(x[1], x[0]), self.breadcrumbs)
             self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
 
-        # Parse given template_dir variable from interface ------------->
-        path_indices = self.template_dir.split('/')
-        for var in enumerate(path_indices):
-            if '.html' in var[1]:
-                template_file = path_indices[var[0]]
-                self.template_dir = self.template_dir.split(var[1])[0]
-
         self.env = Environment(
-            loader=PackageLoader('bomara', self.template_dir),
+            loader=PackageLoader('bomara', '../templates'),
             autoescape=True
         )
 
+        # Checks if options needs to be passed as False
+        if not self.page['Options']:
+            self.page['Options'] = False
+
         with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
-            template = self.env.get_template(template_file)
+            template = self.env.get_template(template)
             template = template.render(
                 meta=self.page['Meta'],
                 techspecs=zip(self.page['Techspecs'], self.page['Headers']),
@@ -253,6 +164,7 @@ class APCCrawler:
         bomara.tools.log('Created: '+self.page['Meta']['part_number'])
         return self.page['Meta']['part_number']
 
+"""    
 class VertivCrawler:
     # Reads url passed into class, parses data sheet as json,
     # and applies that data, among other things, to a jinja2 template
@@ -272,7 +184,6 @@ class VertivCrawler:
         self.page['Meta']['vendor'] = 'Vertiv / Avocent'
         self.template_dir = template_dir
         self.techspecs_title_filters = []
-        self.software_options_filters = ['software', 'struxureware']
 
     def connect(self, url):
         # CONNECT ----------------------------------------------->
@@ -425,3 +336,4 @@ class VertivCrawler:
 
         bomara.tools.log('Created: '+self.page['Meta']['part_number'])
         return self.page['Meta']['part_number']
+"""

@@ -2,7 +2,7 @@
 
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
-import bomara.crawler
+from bomara.vendors import apc
 from bomara.tools import clear_output
 
 app = Flask(__name__,
@@ -18,7 +18,7 @@ app.config.update(
 socketio = SocketIO(app)
     
 crawl_settings = {
-    'write': False,
+    'write': True,
     'template': '../templates/base.html',
 }
 
@@ -29,15 +29,14 @@ def index():
 
 
 def run_crawler(link):
-    bomara.crawler.template_dir = crawl_settings['template']
-
     # Remove anchor from link
     link = link.split('#')[0]
 
-    if 'vertivco.com' in link:
-        scraper = bomara.crawler.VertivCrawler()
-    elif 'apc.com' in link:
-        scraper = bomara.crawler.APCCrawler()
+    #if 'vertivco.com' in link:
+    #    scraper = bomara.crawler.VertivCrawler()
+    if 'apc.com' in link:
+        crawler = apc.crawler
+        crawler.reset()
     else:
         socketio.emit('payload', '[Error] Not a valid vendor/URL')
         return None
@@ -46,24 +45,17 @@ def run_crawler(link):
                   link+'" target="_blank">'+link+'</a>')
 
     try:
-        scraper.connect(link)
+        crawler.connect(link)
     except Exception:
         socketio.emit('payload', '[Error] Not a valid URL')
         return None
 
-    socketio.emit('payload', 'Parsing link')
-    try:
-        scraper.parse(crawl_settings['write'])
-    except Exception as e:
-        socketio.emit('payload', '[Error] Could not parse URL: {}'.format(e))
-        return None
-
-    if scraper.parser_warning:
-        socketio.emit('payload', '[Warning] {}'.format(scraper.parser_warning))
+    if crawler.parser_warning:
+        socketio.emit('payload', '[Warning] {}'.format(crawler.parser_warning))
 
     socketio.emit('payload', 'Applying template')
     try:
-        part_num = scraper.apply_template()
+        part_num = crawler.apply(write=crawl_settings['write'])
     except Exception as e:
         socketio.emit(
             'payload', '[Error] Could not render template: {}'.format(e))
