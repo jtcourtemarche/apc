@@ -3,6 +3,7 @@ secondary.js
 *.css
 **/output
 **/SpryAssets
+**/tools
 templates/base.html
 *.json
 *.log

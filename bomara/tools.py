@@ -21,8 +21,10 @@ def clear_output(output_dir='output/'):
         if os.path.isfile(output_dir+page):
             os.remove(output_dir+page)
 
-    for image in os.listdir('{}/images'.format(output_dir)):
-        os.remove(output_dir + '/images/' + image)
+    if os.path.isdir('{}/images'.format(output_dir)): 
+        for image in os.listdir('{}/images'.format(output_dir)):
+            os.remove(output_dir + '/images/' + image)
+
     log('Output cleared', write=True)
 
 def process_family_links(vendor, part_list, family_name, family_description):
