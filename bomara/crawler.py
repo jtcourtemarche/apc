@@ -74,12 +74,13 @@ class APCCrawler:
         html = self.data.read()
         self.soup = BeautifulSoup(html, 'html.parser')
 
+    def parse(self, write=False):
+        # Get description & part number ---------------------------------->
         self.page['Meta']['description'] = self.soup.find(
             class_='page-header').get_text()
         self.page['Meta']['part_number'] = self.soup.find(
             class_='part-number').get_text()
 
-    def parse(self, write=False):
         # Parse tech specs ---------------------------------------------->
         page_div = self.soup.find('div', id='techspecs')
         techspecs = []
@@ -186,8 +187,9 @@ class APCCrawler:
                     self.page['Options'][key] = sorted(value, key=lambda x: x[2])
         
             for key in dead_keys: self.page['Options'].pop(key, None)
-        except Exception:
+        except Exception as e:
             self.page['Options'] = False
+            self.parser_warning = 'No options on this page: {}'.format(e)
 
         # Write provides a JSON data sheet ----------------------------->
         if write:

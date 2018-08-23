@@ -18,7 +18,7 @@ app.config.update(
 socketio = SocketIO(app)
     
 crawl_settings = {
-    'write': True,
+    'write': False,
     'template': '../templates/base.html',
 }
 
