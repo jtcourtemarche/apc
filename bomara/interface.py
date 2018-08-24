@@ -22,20 +22,18 @@ crawl_settings = {
     'template': '../templates/base.html',
 }
 
-
 @app.route('/')
 def index():
     return render_template('interface.html')
 
 
-def run_crawler(link):
+def run_crawler(link, crawler):
     # Remove anchor from link
     link = link.split('#')[0]
 
     #if 'vertivco.com' in link:
     #    scraper = bomara.crawler.VertivCrawler()
     if 'apc.com' in link:
-        crawler = apc.crawler
         crawler.reset()
     else:
         socketio.emit('payload', '[Error] Not a valid vendor/URL')
@@ -73,7 +71,7 @@ def change_settings(settings):
 @socketio.on('run_crawler')
 def handle_run(form):
     form = form['data'][0]['value']
-    map(lambda link: run_crawler(link), form.splitlines())
+    map(lambda link: run_crawler(link, apc.crawler), form.splitlines())
 
 
 @app.route('/clear', methods=['POST', 'GET'])

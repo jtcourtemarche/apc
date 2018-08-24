@@ -4,6 +4,7 @@
 import urllib2
 import json
 import os
+import copy
 import bomara.tools
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
@@ -59,11 +60,12 @@ class Crawler:
 
         # Initializers
         self.vendor = vendor
-        self.schema = schema
-        self.i_parser = parser
-        self.i_parser_args = parser_args
-        self.i_ignored_headers = ignored_headers
-        self.i_software_identifiers = software_identifiers
+        self._schema = schema
+        self._parser = parser
+        self._parser_args = parser_args
+        self._ignored_headers = ignored_headers
+        self._software_identifiers = software_identifiers
+        self.page = schema
 
         # Constants
         self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
@@ -73,18 +75,15 @@ class Crawler:
         self.reset()
 
     def reset(self):
-        self.page = self.schema
-        self.page['Headers'] = []
-        self.page['Techspecs'] = []
-        self.page['Meta'] = dict()
+        self.page = copy.deepcopy(self._schema)
 
         self.parser_warning = None
         self.page['Meta']['vendor'] = self.vendor
 
-        self.ignored_headers = self.i_ignored_headers
-        self.software_identifiers = self.i_software_identifiers
+        self.ignored_headers = self._ignored_headers
+        self.software_identifiers = self._software_identifiers
 
-        self.parse = self.i_parser
+        self.parse = self._parser
         self.soup = None
 
     def connect(self, url):
