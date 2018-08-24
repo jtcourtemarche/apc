@@ -32,8 +32,9 @@ def process_family_links(vendor, part_list, family_name, family_description):
     part_descriptions = []
     part_names = []
     if vendor == 'Vertiv':
+        scraper = bomara.vendors.vertiv.crawler()
         for link in part_list:
-            scraper = bomara.crawler.VertivCrawler()
+            scraper.reset()
             scraper.connect(link)
             scraper.parse(family_member=(family_name, family_description))
             scraper.apply_template()

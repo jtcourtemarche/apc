@@ -2,7 +2,7 @@
 
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
-from bomara.vendors import apc
+from bomara.vendors import apc, vertiv
 from bomara.tools import clear_output
 
 app = Flask(__name__,
@@ -32,8 +32,7 @@ def run_crawler(link, crawler):
     link = link.split('#')[0]
 
     #if 'vertivco.com' in link:
-    #    scraper = bomara.crawler.VertivCrawler()
-    if 'apc.com' in link:
+    if 'vertivco.com' in link:
         crawler.reset()
     else:
         socketio.emit('payload', '[Error] Not a valid vendor/URL')
@@ -71,7 +70,7 @@ def change_settings(settings):
 @socketio.on('run_crawler')
 def handle_run(form):
     form = form['data'][0]['value']
-    map(lambda link: run_crawler(link, apc.crawler), form.splitlines())
+    map(lambda link: run_crawler(link, vertiv.crawler), form.splitlines())
 
 
 @app.route('/clear', methods=['POST', 'GET'])
