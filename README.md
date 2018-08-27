@@ -5,8 +5,10 @@ Web interface that converts data sheets from various vendors websites to HTML te
 Currently written for Python 2.7.15
 
 ## Supported vendors:
-⋅⋅* APC
-⋅⋅* Avocent/Vertiv 
+* APC
+* Vertiv 
+* Eaton
+* Pulizzi (powerquality.eaton.com)
 
 ## How to use
 ```

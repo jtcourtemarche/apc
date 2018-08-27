@@ -94,7 +94,7 @@ def parse(self, write=False, family_member=None):
 
 crawler = Crawler(
     # Vendor name
-    vendor = 'Vertiv / Avocent',
+    vendor = 'Vertiv',
     schema = {
         # Required
         'Meta': dict(),

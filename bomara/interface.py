@@ -2,7 +2,7 @@
 
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
-from bomara.vendors import apc, vertiv
+from bomara.vendors import apc, vertiv, eaton, pulizzi
 from bomara.tools import clear_output
 
 app = Flask(__name__,
@@ -14,6 +14,10 @@ app.config.update(
     DEBUG=True,
     TESTING=True
 )
+
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 socketio = SocketIO(app)
     
@@ -32,7 +36,7 @@ def run_crawler(link, crawler):
     link = link.split('#')[0]
 
     #if 'vertivco.com' in link:
-    if 'vertivco.com' in link:
+    if 'eaton.com' in link:
         crawler.reset()
     else:
         socketio.emit('payload', '[Error] Not a valid vendor/URL')
@@ -43,8 +47,8 @@ def run_crawler(link, crawler):
 
     try:
         crawler.connect(link)
-    except Exception:
-        socketio.emit('payload', '[Error] Not a valid URL')
+    except Exception as e:
+        socketio.emit('payload', '[Error] Not a valid URL: '+str(e))
         return None
 
     if crawler.parser_warning:
@@ -70,7 +74,7 @@ def change_settings(settings):
 @socketio.on('run_crawler')
 def handle_run(form):
     form = form['data'][0]['value']
-    map(lambda link: run_crawler(link, vertiv.crawler), form.splitlines())
+    map(lambda link: run_crawler(link, pulizzi.crawler), form.splitlines())
 
 
 @app.route('/clear', methods=['POST', 'GET'])

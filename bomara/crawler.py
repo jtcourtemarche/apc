@@ -67,10 +67,12 @@ class Crawler:
         self._software_identifiers = software_identifiers
         self.page = schema
 
+        self.output_dir = 'output/'
+
         # Constants
         self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
         # Not currently supported
-        self.breadcrumbs = [('Symmetra Family', 'symmetra-family.htm'), ('Symmetra RM', 'symmetra-rm.htm')]
+        self.breadcrumbs = [('Switched PDUs', 'switched.htm')]
 
         self.reset()
 
@@ -85,6 +87,9 @@ class Crawler:
 
         self.parse = self._parser
         self.soup = None
+
+    def dl_img(self, url):
+        pass
 
     def connect(self, url):
         # Connect
@@ -102,7 +107,7 @@ class Crawler:
         html = data.read()
         self.soup = BeautifulSoup(html, 'html.parser')   
 
-    def apply(self, output_dir='output/', template='base.html', write=False):
+    def apply(self, template='base.html', write=False):
         try:
             self.parse(self)
         except Exception as e:
@@ -111,7 +116,7 @@ class Crawler:
         # Write provides a JSON data sheet
         if write:
             output = json.dumps(self.page, sort_keys=True, indent=4)
-            with open(output_dir+'output.json', 'w') as f:
+            with open(self.output_dir+'output.json', 'w') as f:
                 bomara.tools.log('Writing {} to output.json'.format(
                     self.page['Meta']['part_number']))
                 f.write(output)
@@ -125,16 +130,18 @@ class Crawler:
             data = urllib2.urlopen(request)
 
             # Create image directory if it doesn't exist already
-            if not os.path.exists('{0}images'.format(output_dir)):
-                os.makedirs('{0}images'.format(output_dir))
+            if not os.path.exists('{0}images'.format(self.output_dir)):
+                os.makedirs('{0}images'.format(self.output_dir))
 
-            with open('{0}images/{1}{2}'.format(output_dir, self.page['Meta']['part_number'], self.page['Meta']['img_type']), 'wb') as img_f:
+            with open('{0}images/{1}{2}'.format(self.output_dir, self.page['Meta']['part_number'], self.page['Meta']['img_type']), 'wb') as img_f:
                 img_f.write(data.read())
                 img_f.close()
         except urllib2.URLError:
-            raise ValueError("Error loading image URL")
+            #raise ValueError("Error loading image URL")
+            pass
         except Exception as e:
-            raise ValueError("Image file download failed: {0!s}".format(e))
+            #raise ValueError("Image file download failed: {0!s}".format(e))
+            pass
 
         # Breadcrumbs 
         if not self.breadcrumbs:
@@ -153,7 +160,7 @@ class Crawler:
         if 'Options' not in self._schema:
             self.page['Options'] = False
 
-        with open('{0}{1}.htm'.format(output_dir, self.page['Meta']['part_number']), 'w') as t:
+        with open('{0}{1}.htm'.format(self.output_dir, self.page['Meta']['part_number']), 'w') as t:
             template = self.env.get_template(template)
             template = template.render(
                 meta=self.page['Meta'],
