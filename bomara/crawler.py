@@ -88,8 +88,24 @@ class Crawler:
         self.parse = self._parser
         self.soup = None
 
-    def dl_img(self, url):
-        pass
+    def dl_img(self, url, img_type, name):
+        try:
+            request = urllib2.Request(url, None, {
+                'User-Agent': self.user_agent
+            })
+            data = urllib2.urlopen(request)
+
+            # Create image directory if it doesn't exist already
+            if not os.path.exists('{0}images'.format(self.output_dir)):
+                os.makedirs('{0}images'.format(self.output_dir))
+
+            with open('{0}images/{1}{2}'.format(self.output_dir, name, img_type), 'wb') as img_f:
+                img_f.write(data.read())
+                img_f.close()
+        except urllib2.URLError:
+            return "Error loading image URL"
+        except Exception as e:
+            return "Image file download failed: {0!s}".format(e)
 
     def connect(self, url):
         # Connect
@@ -122,26 +138,15 @@ class Crawler:
                 f.write(output)
                 f.close()
 
-        # Download part image 
-        try:
-            request = urllib2.Request(self.page['Meta']['img_url'], None, {
-                'User-Agent': self.user_agent
-            })
-            data = urllib2.urlopen(request)
-
-            # Create image directory if it doesn't exist already
-            if not os.path.exists('{0}images'.format(self.output_dir)):
-                os.makedirs('{0}images'.format(self.output_dir))
-
-            with open('{0}images/{1}{2}'.format(self.output_dir, self.page['Meta']['part_number'], self.page['Meta']['img_type']), 'wb') as img_f:
-                img_f.write(data.read())
-                img_f.close()
-        except urllib2.URLError:
-            #raise ValueError("Error loading image URL")
-            pass
-        except Exception as e:
-            #raise ValueError("Image file download failed: {0!s}".format(e))
-            pass
+        # Download part image
+        self.dl_img(
+            # URL
+            self.page['Meta']['img_url'],
+            # Image type
+            self.page['Meta']['img_type'],
+            # Name
+            self.page['Meta']['part_number']
+        )
 
         # Breadcrumbs 
         if not self.breadcrumbs:
