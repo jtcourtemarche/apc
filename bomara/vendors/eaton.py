@@ -20,6 +20,7 @@ def parse(self):
     specs = self.tech_soup.find('div', class_='product-specifications')
     for spec in specs.find_all('div', class_='module-table'):
     	self.page['Headers'].append(spec.find('h3', 'module-table__head').get_text())
+        self.page['Techspecs'].append('*')
     	for row in spec.find_all('div', 'module-table__row'):
     		title = row.find_all('div', 'module-table__col')[0].get_text()
 

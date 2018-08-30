@@ -24,12 +24,16 @@ def parse(self):
             title = td[0].get_text()
 
             if title == 'Plug' or title == 'Outlets':
-                url = td[1].find('img').get('src')
-                img_data = urllib2.urlopen(url)
-                with open(self.output_dir+'/images/'+self.page['Meta']['part_number']+'-'+title+'.gif', 'wb') as f:
-                    f.write(img_data.read())
-                    f.close()
-                description = td[1].get_text() + "<br/><img src='images/{}.gif'></img>".format(self.page['Meta']['part_number']+'-'+title)
+                if td[1].find_all('img') != []: 
+                    url = td[1].find('img').get('src')
+
+                    img_data = urllib2.urlopen(url)
+                    with open(self.output_dir+'/images/'+self.page['Meta']['part_number']+'-'+title+'.gif', 'wb') as f:
+                        f.write(img_data.read())
+                        f.close()
+                    description = td[1].get_text() + "<br/><img src='images/{}.gif'></img>".format(self.page['Meta']['part_number']+'-'+title)
+                else:
+                    description = td[1].get_text()
             elif filter(lambda x: title == x, self.ignored_headers):
                 continue
             elif title == 'Drawing':

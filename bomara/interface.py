@@ -2,7 +2,7 @@
 
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
-from bomara.vendors import apc, vertiv, eaton, pulizzi
+from bomara.vendors import apc, vertiv, eaton, pulizzi, hmcragg
 from bomara.tools import clear_output
 
 app = Flask(__name__,
@@ -35,12 +35,7 @@ def run_crawler(link, crawler):
     # Remove anchor from link
     link = link.split('#')[0]
 
-    #if 'vertivco.com' in link:
-    if 'eaton.com' in link:
-        crawler.reset()
-    else:
-        socketio.emit('payload', '[Error] Not a valid vendor/URL')
-        return None
+    crawler.reset()
 
     socketio.emit('payload', 'Loading <a href="' +
                   link+'" target="_blank">'+link+'</a>')
