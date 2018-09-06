@@ -20,8 +20,6 @@ from bs4 import BeautifulSoup
 #
 # Crawler().apply()
 # --------------------------------------------------------
-# Optional: output_dir
-# output_dir => directory to generate files to
 #
 
 """ Example
@@ -67,12 +65,10 @@ class Crawler:
         self._software_identifiers = software_identifiers
         self.page = schema
 
-        self.output_dir = 'output/'
-
         # Constants
         self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
         # Not currently supported
-        self.breadcrumbs = [('Switched PDUs', 'switched.htm')]
+        self.breadcrumbs = None
 
         self.reset()
 
@@ -96,10 +92,10 @@ class Crawler:
             data = urllib2.urlopen(request)
 
             # Create image directory if it doesn't exist already
-            if not os.path.exists('{0}images'.format(self.output_dir)):
-                os.makedirs('{0}images'.format(self.output_dir))
+            if not os.path.exists('output/images'):
+                os.makedirs('output/images')
 
-            with open('{0}images/{1}{2}'.format(self.output_dir, name, img_type), 'wb') as img_f:
+            with open('output/images/{1}{2}'.format(name, img_type), 'wb') as img_f:
                 img_f.write(data.read())
                 img_f.close()
         except urllib2.URLError:
@@ -119,7 +115,7 @@ class Crawler:
 
         if (data.getcode() != 200):
             raise ValueError('Error: {0!s}'.format(data.getcode()))
-
+            
         html = data.read()
         self.soup = BeautifulSoup(html, 'lxml')   
 
@@ -132,7 +128,7 @@ class Crawler:
         # Write provides a JSON data sheet
         if write:
             output = json.dumps(self.page, sort_keys=True, indent=4)
-            with open(self.output_dir+'output.json', 'w') as f:
+            with open('output/output.json', 'w') as f:
                 bomara.tools.log('Writing {} to output.json'.format(
                     self.page['Meta']['part_number']))
                 f.write(output)
@@ -165,7 +161,7 @@ class Crawler:
         if 'Options' not in self._schema:
             self.page['Options'] = False
 
-        with open('{0}{1}.htm'.format(self.output_dir, self.page['Meta']['part_number']), 'w') as t:
+        with open('output/{0}.htm'.format(self.page['Meta']['part_number']), 'w') as t:
             template = self.env.get_template(template)
             template = template.render(
                 meta=self.page['Meta'],
