@@ -17,8 +17,10 @@ def parser(self):
 
         if self.page['Headers'] != []:
             self.page['Headers'][len(self.page['Headers'])-1] = cheader
+            self.page['Techspecs'].append('*')
         else:
             self.page['Headers'].append(cheader)
+            self.page['Techspecs'].append('*')
 
         list_item = header.find_next_sibling('ul', class_='table-normal')
         for contents in list_item.find_all(class_='col-md-12'):
@@ -28,7 +30,7 @@ def parser(self):
                     continue
 
                 contents = contents.get_text(
-                    ' ', strip=True).replace(title, '')
+                    ' ', strip=True).replace(title, '').replace('\n', '')
 
                 self.page['Techspecs'].append((title, contents))
                 self.page['Headers'].append('*')
