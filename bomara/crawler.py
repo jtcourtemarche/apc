@@ -95,9 +95,10 @@ class Crawler:
             if not os.path.exists('output/images'):
                 os.makedirs('output/images')
 
-            with open('output/images/{1}{2}'.format(name, img_type), 'wb') as img_f:
+            with open('output/images/{0}{1}'.format(name, img_type), 'wb') as img_f:
                 img_f.write(data.read())
                 img_f.close()
+            return True
         except urllib2.URLError:
             return "Error loading image URL"
         except Exception as e:
@@ -135,7 +136,7 @@ class Crawler:
                 f.close()
 
         # Download part image
-        self.dl_img(
+        img = self.dl_img(
             # URL
             self.page['Meta']['img_url'],
             # Image type
@@ -143,6 +144,8 @@ class Crawler:
             # Name
             self.page['Meta']['part_number']
         )
+        if img != True:
+            self.parser_warning = str(img)
 
         # Breadcrumbs 
         if not self.breadcrumbs:
