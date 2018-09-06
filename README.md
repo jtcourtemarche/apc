@@ -9,12 +9,24 @@ Currently written for Python 2.7.15
 * Vertiv 
 * Eaton
 * Pulizzi (powerquality.eaton.com)
+* HM Cragg
 
 ## How to use
 ```
 # Clone repository
-git clone https://github.com/jtcourtemarche/apc.git
-cd apc
+git clone https://github.com/jtcourtemarche/bomara-crawler.git
+cd bomara-crawler
+
+# Create virtual environment (optional)
+virtualenv env
+
+# Linux 
+source env/bin/activate
+
+# Windows
+cd env/Scripts/
+activate
+cd ../..
 
 # Install dependencies
 pip install -r requirements.txt
