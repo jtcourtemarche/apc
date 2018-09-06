@@ -16,14 +16,16 @@ def log(string, write=True):
                 l.write(string)
                 l.close()
 
-def clear_output(output_dir='output/'):
-    for page in os.listdir(output_dir):
-        if os.path.isfile(output_dir+page):
-            os.remove(output_dir+page)
+def clear_output():
+    for page in os.listdir('output/'):
+        if os.path.isfile('output/'+page):
+            os.remove('output/'+page)
 
-    if os.path.isdir('{}/images'.format(output_dir)): 
-        for image in os.listdir('{}/images'.format(output_dir)):
-            os.remove(output_dir + '/images/' + image)
+    if os.path.isdir('output/images'): 
+        for image in os.listdir('output/images'):
+            os.remove('output/images/' + image)
+    else:
+        os.makedirs('output/images/')
 
     log('Output cleared', write=True)
 
