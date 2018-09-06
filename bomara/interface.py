@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
 from bomara.vendors import apc, vertiv, eaton, pulizzi, hmcragg
 from bomara.tools import clear_output
+import traceback
 
 app = Flask(__name__,
             template_folder='../templates',
@@ -22,14 +23,13 @@ log.setLevel(logging.ERROR)
 socketio = SocketIO(app)
     
 crawl_settings = {
-    'write': False,
+    'write': True,
     'template': '../templates/base.html',
 }
 
 @app.route('/')
 def index():
     return render_template('interface.html')
-
 
 def run_crawler(link, crawler):
     # Remove anchor from link
@@ -53,8 +53,9 @@ def run_crawler(link, crawler):
     try:
         part_num = crawler.apply(write=crawl_settings['write'])
     except Exception as e:
+        trace = traceback.format_exc().replace(' File ', '<br/><br/>')
         socketio.emit(
-            'payload', '[Error] Could not render template: {}'.format(e))
+            'payload', '[Error] Could not render template: {0} <br/><br/> <code>{1}</code>'.format(e, trace))
         return None
 
     socketio.emit('payload', '[Complete] '+part_num)
@@ -69,7 +70,7 @@ def change_settings(settings):
 @socketio.on('run_crawler')
 def handle_run(form):
     form = form['data'][0]['value']
-    map(lambda link: run_crawler(link, pulizzi.crawler), form.splitlines())
+    map(lambda link: run_crawler(link, apc.crawler), form.splitlines())
 
 
 @app.route('/clear', methods=['POST', 'GET'])
