@@ -23,7 +23,7 @@ log.setLevel(logging.ERROR)
 socketio = SocketIO(app)
     
 crawl_settings = {
-    'write': True,
+    'write': False,
     'template': '../templates/base.html',
 }
 
@@ -46,9 +46,6 @@ def run_crawler(link, crawler):
         socketio.emit('payload', '[Error] Not a valid URL: '+str(e))
         return None
 
-    if crawler.parser_warning:
-        socketio.emit('payload', '[Warning] {}'.format(crawler.parser_warning))
-
     socketio.emit('payload', 'Applying template')
     try:
         part_num = crawler.apply(write=crawl_settings['write'])
@@ -57,6 +54,9 @@ def run_crawler(link, crawler):
         socketio.emit(
             'payload', '[Error] Could not render template: {0} <br/><br/> <code>{1}</code>'.format(e, trace))
         return None
+
+    if crawler.parser_warning:
+        socketio.emit('payload', '[Warning] {}'.format(crawler.parser_warning))
 
     socketio.emit('payload', '[Complete] '+part_num)
 
