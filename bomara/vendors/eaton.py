@@ -13,6 +13,7 @@ def parse(self):
         class_='rendition__image').get('data-src')
     self.page['Meta']['img_type'] = '.jpg'
 
+    # Open specifications page
     data = urllib.request.urlopen('http://www.eaton.com/us/en-us/skuPage.{}.specifications.html'.format(self.page['Meta']['part_number']))
     self.tech_soup = BeautifulSoup(data.read(), 'html.parser')
 
