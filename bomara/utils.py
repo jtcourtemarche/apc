@@ -44,4 +44,4 @@ def process_family_links(vendor, part_list, family_name, family_description):
             part_numbers.append(scraper.page['Meta']['part_number'])
             part_descriptions.append(scraper.page['Meta']['includes'])
             part_names.append(scraper.page['Meta']['description'])
-        return zip(part_numbers, part_descriptions, part_names)
+        return list(zip(part_numbers, part_descriptions, part_names))

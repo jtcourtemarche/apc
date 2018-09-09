@@ -3,7 +3,7 @@
 import argparse
 
 from bomara.interface import run
-from bomara.tools import clear_output
+from bomara.utils import clear_output
 
 # Load args ------------------------->
 

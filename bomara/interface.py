@@ -3,7 +3,7 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
 from bomara.vendors import apc, vertiv, eaton, pulizzi, hmcragg
-from bomara.tools import clear_output
+from bomara.utils import clear_output
 import traceback
 
 app = Flask(__name__,

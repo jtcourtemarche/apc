@@ -2,7 +2,7 @@
 
 Web interface that converts data sheets from various vendors websites to HTML templates.
 
-Currently written for Python 2.7.15
+Currently written for Python 3.7.0
 
 ## Supported vendors:
 * APC

@@ -1,5 +1,5 @@
 from bomara.crawler import Crawler
-import bomara.tools
+import bomara.utils
 
 def parse_techspecs(self, page_div):
     page_div = page_div.parent

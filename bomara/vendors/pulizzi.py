@@ -1,5 +1,5 @@
 from bomara.crawler import Crawler
-import urllib2
+import urllib
 from bs4 import BeautifulSoup
 
 def parse(self):
@@ -27,7 +27,7 @@ def parse(self):
                 if td[1].find_all('img') != []: 
                     url = td[1].find('img').get('src')
 
-                    img_data = urllib2.urlopen(url)
+                    img_data = urllib.request.urlopen(url)
                     with open(self.output_dir+'/images/'+self.page['Meta']['part_number']+'-'+title+'.gif', 'wb') as f:
                         f.write(img_data.read())
                         f.close()

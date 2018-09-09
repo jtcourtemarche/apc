@@ -1,11 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import json
 import os
 import copy
-import bomara.tools
+import bomara.utils
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
@@ -86,10 +86,10 @@ class Crawler:
 
     def dl_img(self, url, img_type, name):
         try:
-            request = urllib2.Request(url, None, {
+            request = urllib.request.Request(url, None, {
                 'User-Agent': self.user_agent
             })
-            data = urllib2.urlopen(request)
+            data = urllib.request.urlopen(request)
 
             # Create image directory if it doesn't exist already
             if not os.path.exists('output/images'):
@@ -99,7 +99,7 @@ class Crawler:
                 img_f.write(data.read())
                 img_f.close()
             return True
-        except urllib2.URLError:
+        except urllib.error.URLError:
             return "Error loading image URL"
         except Exception as e:
             return "Image file download failed: {0!s}".format(e)
@@ -107,11 +107,11 @@ class Crawler:
     def connect(self, url):
         # Connect
         try:
-            request = urllib2.Request(url, None, {
+            request = urllib.request.Request(url, None, {
                 'User-Agent': self.user_agent
             })
-            data = urllib2.urlopen(request)
-        except urllib2.URLError:
+            data = urllib.request.urlopen(request)
+        except urllib.error.URLError:
             raise ValueError("Not a valid url!")
 
         if (data.getcode() != 200):
@@ -151,8 +151,7 @@ class Crawler:
         if not self.breadcrumbs:
             self.page['Meta']['breadcrumbs'] = ''
         else:
-            breadcrumbs = map(
-                lambda x: u"<a href='{0}'>{1}</a> » ".format(x[1], x[0]), self.breadcrumbs)
+            breadcrumbs = ["<a href='{0}'>{1}</a> » ".format(x[1], x[0]) for x in self.breadcrumbs]
             self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
 
         self.env = Environment(
@@ -168,7 +167,7 @@ class Crawler:
             template = self.env.get_template(template)
             template = template.render(
                 meta=self.page['Meta'],
-                techspecs=zip(self.page['Techspecs'], self.page['Headers']),
+                techspecs=list(zip(self.page['Techspecs'], self.page['Headers'])),
                 options=self.page['Options']
             ).encode('utf-8')
             t.write(template)
