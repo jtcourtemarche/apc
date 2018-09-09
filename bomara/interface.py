@@ -2,8 +2,10 @@
 
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
-from bomara.vendors import apc, vertiv, eaton, pulizzi, hmcragg
-from bomara.utils import clear_output
+
+from .vendors import apc, eaton, hmcragg, pulizzi, vertiv
+from .utils import clear_output
+
 import traceback
 
 app = Flask(__name__,
@@ -24,7 +26,8 @@ socketio = SocketIO(app)
     
 crawl_settings = {
     'write': False,
-    'template': '../templates/base.html',
+    'template': 'base.html',
+    'crawler': 'apc'
 }
 
 @app.route('/')
@@ -48,11 +51,15 @@ def run_crawler(link, crawler):
 
     socketio.emit('payload', 'Applying template')
     try:
-        part_num = crawler.apply(write=crawl_settings['write'])
+        part_num = crawler.apply(
+            write=crawl_settings['write'],
+            template=crawl_settings['template'],
+        )
     except Exception as e:
         trace = traceback.format_exc().replace(' File ', '<br/><br/>')
         socketio.emit(
-            'payload', '[Error] Could not render template: {0} <br/><br/> <code>{1}</code>'.format(e, trace))
+            'payload', '[Error] Could not render template: {0} <br/><br/> <code>{1}</code>'.format(e, trace)
+        )
         return None
 
     if crawler.parser_warning:
@@ -70,17 +77,14 @@ def change_settings(settings):
 @socketio.on('run_crawler')
 def handle_run(form):
     form = form['data'][0]['value']
-    map(lambda link: run_crawler(link, apc.crawler), form.splitlines())
+    
+    [run_crawler(link, apc.crawler) for link in form.splitlines()]
 
-
-@app.route('/clear', methods=['POST', 'GET'])
+@app.route('/clear', methods=['POST'])
 def handle_clear():
-    if request.method == 'POST':
-        clear_output()
-        socketio.emit('payload', '[Complete] Cleared output folder')
-        return jsonify('Cleared output')
-    # Accessing /clear directly
-    return redirect('/')
+    clear_output()
+    socketio.emit('payload', '[Complete] Cleared output folder')
+    return jsonify('Cleared output')
 
 
 @app.route('/logs')

@@ -164,7 +164,12 @@ class Crawler:
             self.page['Options'] = False
 
         with open('output/{0}.htm'.format(self.page['Meta']['part_number']), 'w') as t:
-            template = self.env.get_template(template)
+            try:
+                template = self.env.get_template(template)
+            except Exception as e:
+                t.close()
+                raise ValueError('No template found. {} could not be crawled'.format(self.page['Meta']['part_number']))
+                
             template = template.render(
                 meta=self.page['Meta'],
                 techspecs=list(zip(self.page['Techspecs'], self.page['Headers'])),
