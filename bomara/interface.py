@@ -7,6 +7,7 @@ from .vendors import apc, eaton, hmcragg, pulizzi, vertiv
 from .utils import clear_output
 
 import traceback
+import os
 
 app = Flask(__name__,
             template_folder='../templates',
@@ -25,8 +26,11 @@ log.setLevel(logging.ERROR)
 socketio = SocketIO(app)
     
 crawl_settings = {
+    # Write output to JSON
     'write': False,
+    # Template filename
     'template': 'base.html',
+    # Default crawler
     'crawler': 'apc'
 }
 
@@ -68,17 +72,31 @@ def run_crawler(link, crawler):
     socketio.emit('payload', '[Complete] '+part_num)
 
 
+@socketio.on('flash')
+def flash(msg):
+    # Flash a message in payload
+    socketio.emit('payload', '[Complete] '+msg)
+
+
+@socketio.on('list-crawlers')
+def list_crawlers():
+    # Provide list of available crawlers to interface
+    crawlers = [filename.replace('.py', '') for filename in os.listdir(os.getcwd()+'/bomara/vendors') if filename[0] != '_']
+    socketio.emit('crawlers', crawlers)
+
+
 @socketio.on('set')
-def change_settings(settings):
+def change_settings(s):
     # Wrapper for changing crawler settings
-    crawl_settings[settings[0]] = settings[1]
+    crawl_settings[s['settings'][0]] = s['settings'][1]
+    socketio.emit('payload', '[Complete] Set {0} to {1}'.format(s['settings'][0], s['settings'][1]))
 
 
 @socketio.on('run_crawler')
 def handle_run(form):
     form = form['data'][0]['value']
     
-    [run_crawler(link, apc.crawler) for link in form.splitlines()]
+    [run_crawler(link, eval('{}.crawler'.format(crawl_settings['crawler']))) for link in form.splitlines()]
 
 @app.route('/clear', methods=['POST'])
 def handle_clear():

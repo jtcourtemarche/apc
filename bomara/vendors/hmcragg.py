@@ -84,6 +84,8 @@ crawler = Crawler(
     # Mostly APC exclusive
     software_identifiers = [],
 
+    links=['hmcragg.com/*'],
+
     # Required returns: 
     #   self.page['Meta']['part_number', 'img_url', 'img_type']
     #   self.page['Techspecs', 'Headers']

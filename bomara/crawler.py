@@ -5,7 +5,7 @@ import urllib.request, urllib.error, urllib.parse
 import json
 import os
 import copy
-import bomara.utils
+from . import utils 
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
@@ -54,11 +54,12 @@ crawler = Crawler(
 
 class Crawler:
     def __init__(
-        self, vendor, schema, parser, parser_args=[], ignored_headers=[], software_identifiers=[]):
+        self, vendor, schema, links, parser, parser_args=[], ignored_headers=[], software_identifiers=[]):
 
         # Initializers
         self.vendor = vendor
-        self._schema = schema
+        self.schema = schema
+        self.links = links
         self._parser = parser
         self._parser_args = parser_args
         self._ignored_headers = ignored_headers
@@ -73,7 +74,7 @@ class Crawler:
         self.reset()
 
     def reset(self):
-        self.page = copy.deepcopy(self._schema)
+        self.page = copy.deepcopy(self.schema)
 
         self.parser_warning = None
         self.page['Meta']['vendor'] = self.vendor
@@ -106,6 +107,14 @@ class Crawler:
 
     def connect(self, url):
         # Connect
+        p = False
+        for l in self.links:
+            if l.split('*')[0] in url:
+                p = True
+                
+        if not p:
+            raise ValueError('Not using the correct parser for this link')
+
         try:
             request = urllib.request.Request(url, None, {
                 'User-Agent': self.user_agent
@@ -160,10 +169,10 @@ class Crawler:
         )
 
         # Checks if options needs to be passed as False
-        if 'Options' not in self._schema:
+        if 'Options' not in self.schema:
             self.page['Options'] = False
 
-        with open('output/{0}.htm'.format(self.page['Meta']['part_number']), 'w') as t:
+        with open('output/{0}.htm'.format(self.page['Meta']['part_number']), 'wb') as t:
             try:
                 template = self.env.get_template(template)
             except Exception as e:
@@ -178,5 +187,5 @@ class Crawler:
             t.write(template)
             t.close()
 
-        bomara.tools.log('Created: '+self.page['Meta']['part_number'])
+        utils.log('Created: '+self.page['Meta']['part_number'])
         return self.page['Meta']['part_number']

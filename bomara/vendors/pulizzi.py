@@ -65,6 +65,8 @@ crawler = Crawler(
     # Mostly APC exclusive
     software_identifiers = [],
 
+    links=['powerquality.eaton.com/*'],
+
     # Required returns: 
     #   self.page['Meta']['part_number', 'img_url', 'img_type']
     #   self.page['Techspecs', 'Headers']

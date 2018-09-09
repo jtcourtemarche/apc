@@ -144,6 +144,8 @@ crawler = Crawler(
     # Mostly APC exclusive
     software_identifiers = ['software', 'struxureware'],
 
+    links=['apc.com/*'],
+
     # Required returns: 
     #   self.page['Meta']['part_number', 'img_url', 'img_type']
     #   self.page['Techspecs', 'Headers']

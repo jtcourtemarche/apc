@@ -1,4 +1,4 @@
-![APC Crawler](https://raw.githubusercontent.com/jtcourtemarche/apc/master/static/img/logo.jpg)
+## Bomara Crawler
 
 Web interface that converts data sheets from various vendors websites to HTML templates.
 
