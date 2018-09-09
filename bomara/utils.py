@@ -17,19 +17,23 @@ def log(string, write=True):
                 l.close()
 
 def clear_output():
-    for page in os.listdir('output/'):
-        if os.path.isfile('output/'+page):
-            os.remove('output/'+page)
+    if os.path.isdir('output/'):
+        for page in os.listdir('output/'):
+            if os.path.isfile('output/'+page):
+                os.remove('output/'+page)
 
-    if os.path.isdir('output/images'): 
-        for image in os.listdir('output/images'):
-            os.remove('output/images/' + image)
+        if os.path.isdir('output/images'): 
+            for image in os.listdir('output/images'):
+                os.remove('output/images/' + image)
+        else:
+            os.makedirs('output/images/')
     else:
-        os.makedirs('output/images/')
+        os.makedirs('output/')
 
     log('Output cleared', write=True)
 
 def process_family_links(vendor, part_list, family_name, family_description):
+    # Specific to Vertiv crawler
     part_numbers = []
     part_descriptions = []
     part_names = []
