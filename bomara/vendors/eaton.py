@@ -15,21 +15,22 @@ def parse(self):
 
     # Open specifications page
     data = urllib.request.urlopen('http://www.eaton.com/us/en-us/skuPage.{}.specifications.html'.format(self.page['Meta']['part_number']))
+
     self.tech_soup = BeautifulSoup(data.read(), 'html.parser')
 
     specs = self.tech_soup.find('div', class_='product-specifications')
     for spec in specs.find_all('div', class_='module-table'):
         self.page['Headers'].append(spec.find('h3', 'module-table__head').get_text())
-        self.page['Techspecs'].append('*')
         for row in spec.find_all('div', 'module-table__row'):
-            title = row.find_all('div', 'module-table__col')[0].get_text()
+            cols = row.find_all('div', 'module-table__col')
+            title = cols[0].get_text()
 
             if title == 'Runtime Graph':
                 description = '<a target="_blank" href="http://eg.eaton.com/ups-battery-runtime/en-us/{}">View Runtime Graph</a>'.format(self.page['Meta']['part_number'])
-            elif filter(lambda x: title == x, self.ignored_headers):
+            elif [x for x in self.ignored_headers if title == x] != []:
                 continue
             else:
-                description = row.find_all('div', 'module-table__col')[1].get_text().strip('\n')
+                description = cols[1].get_text().strip('\n')
 
             self.page['Techspecs'].append((title, description))
             self.page['Headers'].append('*')
@@ -38,7 +39,7 @@ def parse(self):
 
 crawler = Crawler(
     # Vendor name
-    vendor = 'Pulizzi',
+    vendor = 'Eaton',
     schema = {
         # Required
         'Meta': dict(),
