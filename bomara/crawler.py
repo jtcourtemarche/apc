@@ -69,7 +69,8 @@ class Crawler:
         # Constants
         self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
         # Not currently supported
-        self.breadcrumbs = None
+        self.breadcrumbs = [('Eaton Powerware Home', 'index.htm'), ('Single Phase UPS Systems', 'single-phase.htm'), ('Series 9', 
+            'series9.htm'), ('9PX UPS', '9px.htm')]
 
         self.reset()
 
@@ -129,17 +130,36 @@ class Crawler:
         html = data.read()
         self.soup = BeautifulSoup(html, 'lxml')   
 
+    def cleanup(self, ids):
+        for sid in ids:
+            try:
+                string = self.page['Meta'][sid] 
+            except:
+                continue 
+
+            if sid == 'part_number':
+                string = ''.join(string.split())
+
+            string = string.replace('\t', '')
+            string = string.replace('\n', '')
+            string = string.replace(u'\u00ae', '')
+
+            self.page['Meta'][sid] = string
+
     def apply(self, template='base.html', write=False):
         try:
             self.parse(self)
         except Exception as e:
             raise ValueError('Failed to parse: {}'.format(e))
 
+        # Cleanup part number & description
+        self.cleanup(['part_number', 'description', 'includes'])
+
         # Write provides a JSON data sheet
         if write:
             output = json.dumps(self.page, sort_keys=True, indent=4)
             with open('output/output.json', 'w') as f:
-                bomara.tools.log('Writing {} to output.json'.format(
+                utils.log('Writing {} to output.json'.format(
                     self.page['Meta']['part_number']))
                 f.write(output)
                 f.close()
@@ -172,7 +192,7 @@ class Crawler:
         if 'Options' not in self.schema:
             self.page['Options'] = False
 
-        with open('output/{0}.htm'.format(self.page['Meta']['part_number']), 'wb') as t:
+        with open('output/{}.htm'.format(self.page['Meta']['part_number']), 'wb') as t:
             try:
                 template = self.env.get_template(template)
             except Exception as e:
