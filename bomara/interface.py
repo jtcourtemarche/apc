@@ -81,7 +81,7 @@ def flash(msg):
 @socketio.on('list-crawlers')
 def list_crawlers():
     # Provide list of available crawlers to interface
-    crawlers = [filename.replace('.py', '') for filename in os.listdir(os.getcwd()+'/bomara/vendors') if filename[0] != '_']
+    crawlers = [filename.replace('.py', '') for filename in os.listdir(os.getcwd()+'/bomara/vendors') if filename[0] != '_' and filename[-3:] == '.py']
     socketio.emit('crawlers', crawlers)
 
 
