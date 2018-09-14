@@ -10,6 +10,7 @@ Currently written for Python 3.7.0
 * Eaton
 * Pulizzi (powerquality.eaton.com)
 * HM Cragg
+* Servertech
 
 ## How to use
 ```
