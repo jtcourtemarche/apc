@@ -3,7 +3,7 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
 
-from .vendors import apc, eaton, hmcragg, pulizzi, vertiv
+from .vendors import apc, eaton, hmcragg, pulizzi, vertiv, servertech
 from .utils import clear_output
 
 import traceback
