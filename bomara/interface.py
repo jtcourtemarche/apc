@@ -3,7 +3,7 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
 
-from .vendors import apc, eaton, hmcragg, pulizzi, vertiv
+from . import vendors
 from .utils import clear_output
 
 import traceback
@@ -81,7 +81,7 @@ def flash(msg):
 @socketio.on('list-crawlers')
 def list_crawlers():
     # Provide list of available crawlers to interface
-    crawlers = [filename.replace('.py', '') for filename in os.listdir(os.getcwd()+'/bomara/vendors') if filename[0] != '_' and filename[-3:] == '.py']
+    crawlers = vendors.__all__
     socketio.emit('crawlers', crawlers)
 
 
@@ -96,7 +96,7 @@ def change_settings(s):
 def handle_run(form):
     form = form['data'][0]['value']
     
-    [run_crawler(link, eval('{}.crawler'.format(crawl_settings['crawler']))) for link in form.splitlines()]
+    [run_crawler(link, eval('vendors.{}.crawler'.format(crawl_settings['crawler']))) for link in form.splitlines()]
 
 @app.route('/clear', methods=['POST'])
 def handle_clear():
