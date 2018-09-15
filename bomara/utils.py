@@ -4,18 +4,6 @@ import os
 import datetime
 import bomara.crawler
 
-def log(string, write=True):
-    string = '[{0}] {1}\n'.format(datetime.datetime.now(), string)
-    if write:
-        if os.path.isfile('crawler.log'):
-            with open('crawler.log', 'a') as l:
-                l.write(string)
-                l.close()
-        else:
-            with open('crawler.log', 'w') as l:
-                l.write(string)
-                l.close()
-
 def clear_output():
     if os.path.isdir('output/'):
         for page in os.listdir('output/'):
@@ -29,8 +17,6 @@ def clear_output():
             os.makedirs('output/images/')
     else:
         os.makedirs('output/')
-
-    log('Output cleared', write=True)
 
 def process_family_links(vendor, part_list, family_name, family_description):
     # Specific to Vertiv crawler

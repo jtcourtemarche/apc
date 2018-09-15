@@ -43,6 +43,8 @@
 		<div class='container' style='margin-top: 6%'>
 			<div class='row'>
 				<div class='col'>
+					Selected crawler:
+					<h2 class="crawler">APC</h2>
 					<form action='#'id='apc-form'>
 						<div class='form-group'>
 							<textarea style='font-size: 12px; font-family: monospace;' class='form-control' rows=15 name='links'></textarea>
@@ -68,17 +70,24 @@
 						<h4 class="modal-title">Settings</h4>
 					</div>
 					<div class="modal-body">
-						<button id='clear_output_button' class='btn btn-secondary'>Clear Output Folder</button>
-						<a href='/logs' target='_blank'>
-							<button class='btn btn-secondary'>View Logs</button>
-						</a>
-						<div class="dropdown">
-						  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						    Select a crawler
-						  </button>
-						  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-						  </div>
-						</div>
+						<table>
+							<tr>
+								<td>
+									<button id='clear_output_button' class='btn btn-secondary'>Clear Output Folder</button>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="dropdown">
+									  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									    Select a crawler
+									  </button>
+									  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+									  </div>
+									</div>
+								</td>
+							</tr>
+						</table>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-primary" data-dismiss="modal">

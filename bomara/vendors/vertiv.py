@@ -1,5 +1,5 @@
 from bomara.crawler import Crawler
-import bomara.utils
+from bomara.utils import process_family_links
 
 def parse_techspecs(self, page_div):
     page_div = page_div.parent
@@ -39,7 +39,7 @@ def parse(self, write=False, family_member=None):
         for link in self.soup.find_all('a', class_='same-height-target'):
             family_links.append("http://www.vertivco.com" + link.get('href'))
         
-        family_data = bomara.tools.process_family_links('Vertiv', family_links, self.page['Meta']['part_number'], self.page['Meta']['description'])
+        family_data = process_family_links('Vertiv', family_links, self.page['Meta']['part_number'], self.page['Meta']['description'])
 
         self.page['Meta']['breadcrumbs'] = self.page['Meta']['description'].replace('Avocent', '').replace('Vertiv', '')
         self.page['Meta']['family'] = family_data
@@ -81,8 +81,6 @@ def parse(self, write=False, family_member=None):
     if write:
         output = json.dumps(self.page, sort_keys=True, indent=4)
         with open('output.json', 'w') as f:
-            bomara.tools.log('Writing {} to output.json'.format(
-                self.page['Meta']['part_number']))
             f.write(output)
             f.close()
 
