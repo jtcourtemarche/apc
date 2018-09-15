@@ -3,7 +3,9 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
 
+from .vendors import *
 from . import vendors
+
 from .utils import clear_output
 
 import traceback
@@ -96,7 +98,7 @@ def change_settings(s):
 def handle_run(form):
     form = form['data'][0]['value']
     
-    [run_crawler(link, eval('vendors.{}.crawler'.format(crawl_settings['crawler']))) for link in form.splitlines()]
+    [run_crawler(link, eval('{}.crawler'.format(crawl_settings['crawler']))) for link in form.splitlines()]
 
 @app.route('/clear', methods=['POST'])
 def handle_clear():
