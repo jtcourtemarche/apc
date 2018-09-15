@@ -16,7 +16,7 @@ def parse_techspecs(self, page_div):
             title = contents.find('dt').get_text()
             description = contents.find('dd').get_text()
             # Checks title filters  
-            if filter(lambda x: x in title, self.ignored_headers):
+            if [x for x in self.ignored_headers if x in title]:
                 continue
 
             self.page['Techspecs'].append((title, description))
@@ -28,14 +28,10 @@ def parse(self, write=False, family_member=None):
     self.page['Meta']['description'] = self.soup.find(
         'h1', class_='productnamedata').get_text()
 
-    part_number = self.soup.find(
-        class_='productnamedata').get_text().split(' ')
+    part_number = self.soup.find('link',
+        attrs={'rel':'alternate'}).get('href')
 
-    pnfilters = ['Serial', 'Secure', 'Advanced', 'Management', 'Digital', 'Basic']
-    if filter(lambda x: x == part_number[2], pnfilters):
-        self.page['Meta']['part_number'] = part_number[1] 
-    else:
-        self.page['Meta']['part_number'] = (part_number[1] + part_number[2]).replace('"', '')
+    self.page['Meta']['part_number'] = part_number.split('/')[-2].upper()
 
     # Check if valid product page ----------------------------------->
     if self.soup.find('span', class_='subtitle').get_text() == 'Product Family':
