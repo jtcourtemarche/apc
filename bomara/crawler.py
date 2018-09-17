@@ -138,7 +138,7 @@ class Crawler:
                 continue 
 
             if sid == 'part_number':
-                string = ''.join(string.split())
+                string = ''.join(string.split(' '))
 
             string = string.replace('\t', '')
             string = string.replace('\n', '')
