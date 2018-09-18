@@ -68,8 +68,7 @@ class Crawler:
         # Constants
         self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
         # Not currently supported
-        self.breadcrumbs = [('Eaton Powerware Home', 'index.htm'), ('Single Phase UPS Systems', 'single-phase.htm'), ('Series 9', 
-            'series9.htm'), ('9PX UPS', '9px.htm')]
+        self.breadcrumbs = None
 
         self.reset()
 
@@ -134,23 +133,27 @@ class Crawler:
             try:
                 sid = sid.split('/')
                 string = self.page[sid[0]][sid[1]] 
+
+                if sid == 'part_number':
+                    # Empty out spaces
+                    string = string.replace(' ', '')
+
+                string = string.replace('\t', '')
+                string = string.replace('\n', '')
+                string = string.replace(u'\u00ae', '')
+
+                self.page[sid[0]][sid[1]] = string
             except:
-                continue 
+                continue
+        # Return last string for single usage
+        return string
 
-            if sid == 'part_number':
-                string = ''.join(string.split(' '))
-
-            string = string.replace('\t', '')
-            string = string.replace('\n', '')
-            string = string.replace(u'\u00ae', '')
-
-            self.page[sid[0]][sid[1]] = string
-
-    def apply(self, template='base.html', write=False):
-        try:
-            self.parse(self)
-        except Exception as e:
-            raise ValueError('Failed to parse: {}'.format(e))
+    def apply(self, template='base.html', write=False, parse=True, dl_img=True):
+        if parse:
+            try:
+                self.parse(self)
+            except Exception as e:
+                raise ValueError('Failed to parse: {}'.format(e))
 
         # Cleanup part number & description
         self.cleanup(['Meta/part_number', 'Meta/description', 'Meta/includes'])
@@ -163,23 +166,26 @@ class Crawler:
                 f.close()
 
         # Download part image
-        img = self.dl_img(
-            # URL
-            self.page['Meta']['img_url'],
-            # Image type
-            self.page['Meta']['img_type'],
-            # Name
-            self.page['Meta']['part_number']
-        )
-        if img != True:
-            self.parser_warning = str(img)
+        if dl_img:
+            img = self.dl_img(
+                # URL
+                self.page['Meta']['img_url'],
+                # Image type
+                self.page['Meta']['img_type'],
+                # Name
+                self.page['Meta']['part_number']
+            )
+            if img != True:
+                self.parser_warning = str(img)
 
         # Breadcrumbs 
-        if not self.breadcrumbs:
-            self.page['Meta']['breadcrumbs'] = ''
-        else:
-            breadcrumbs = ["<a href='{0}'>{1}</a> » ".format(x[1], x[0]) for x in self.breadcrumbs]
-            self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
+        if self.breadcrumbs:
+            try:
+                breadcrumbs = ["<a href='{0}'>{1}</a> » ".format(x[1], x[0]) for x in self.breadcrumbs]
+                self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
+            except Exception as e:
+                self.parser_warning(f'Invalid breadcrumbs {e}')
+                breadcrumbs = None
 
         self.env = Environment(
             loader=PackageLoader('bomara', '../templates'),
