@@ -5,7 +5,6 @@ import urllib.request, urllib.error, urllib.parse
 import json
 import os
 import copy
-from . import utils 
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 
@@ -133,7 +132,8 @@ class Crawler:
     def cleanup(self, ids):
         for sid in ids:
             try:
-                string = self.page['Meta'][sid] 
+                sid = sid.split('/')
+                string = self.page[sid[0]][sid[1]] 
             except:
                 continue 
 
@@ -144,7 +144,7 @@ class Crawler:
             string = string.replace('\n', '')
             string = string.replace(u'\u00ae', '')
 
-            self.page['Meta'][sid] = string
+            self.page[sid[0]][sid[1]] = string
 
     def apply(self, template='base.html', write=False):
         try:
@@ -153,14 +153,12 @@ class Crawler:
             raise ValueError('Failed to parse: {}'.format(e))
 
         # Cleanup part number & description
-        self.cleanup(['part_number', 'description', 'includes'])
+        self.cleanup(['Meta/part_number', 'Meta/description', 'Meta/includes'])
 
         # Write provides a JSON data sheet
         if write:
             output = json.dumps(self.page, sort_keys=True, indent=4)
             with open('output/output.json', 'w') as f:
-                utils.log('Writing {} to output.json'.format(
-                    self.page['Meta']['part_number']))
                 f.write(output)
                 f.close()
 
@@ -207,5 +205,4 @@ class Crawler:
             t.write(template)
             t.close()
 
-        utils.log('Created: '+self.page['Meta']['part_number'])
         return self.page['Meta']['part_number']

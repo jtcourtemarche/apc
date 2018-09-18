@@ -23,11 +23,15 @@ socket.on('payload', function(data) {
 });
 
 $('#clear_button').click(function() {
-    $('textarea').val('');
+    //$('textarea').val('');
     $('#output-log').empty();
 });
 $('#clear_output_button').click(function() {
     $.post('/clear'); 
+});
+
+socket.on('crawler-change', function(crawler) {
+    $('.crawler').html(crawler.toUpperCase());
 });
 
 // Get list of available crawlers

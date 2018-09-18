@@ -1,5 +1,5 @@
 from bomara.crawler import Crawler
-import bomara.utils
+from bomara.utils import process_family_links
 
 def parse_techspecs(self, page_div):
     page_div = page_div.parent
@@ -16,7 +16,7 @@ def parse_techspecs(self, page_div):
             title = contents.find('dt').get_text()
             description = contents.find('dd').get_text()
             # Checks title filters  
-            if filter(lambda x: x in title, self.ignored_headers):
+            if [x for x in self.ignored_headers if x in title]:
                 continue
 
             self.page['Techspecs'].append((title, description))
@@ -28,14 +28,10 @@ def parse(self, write=False, family_member=None):
     self.page['Meta']['description'] = self.soup.find(
         'h1', class_='productnamedata').get_text()
 
-    part_number = self.soup.find(
-        class_='productnamedata').get_text().split(' ')
+    part_number = self.soup.find('link',
+        attrs={'rel':'alternate'}).get('href')
 
-    pnfilters = ['Serial', 'Secure', 'Advanced', 'Management', 'Digital', 'Basic']
-    if filter(lambda x: x == part_number[2], pnfilters):
-        self.page['Meta']['part_number'] = part_number[1] 
-    else:
-        self.page['Meta']['part_number'] = (part_number[1] + part_number[2]).replace('"', '')
+    self.page['Meta']['part_number'] = part_number.split('/')[-2].upper()
 
     # Check if valid product page ----------------------------------->
     if self.soup.find('span', class_='subtitle').get_text() == 'Product Family':
@@ -43,7 +39,7 @@ def parse(self, write=False, family_member=None):
         for link in self.soup.find_all('a', class_='same-height-target'):
             family_links.append("http://www.vertivco.com" + link.get('href'))
         
-        family_data = bomara.tools.process_family_links('Vertiv', family_links, self.page['Meta']['part_number'], self.page['Meta']['description'])
+        family_data = process_family_links('Vertiv', family_links, self.page['Meta']['part_number'], self.page['Meta']['description'])
 
         self.page['Meta']['breadcrumbs'] = self.page['Meta']['description'].replace('Avocent', '').replace('Vertiv', '')
         self.page['Meta']['family'] = family_data
@@ -85,8 +81,6 @@ def parse(self, write=False, family_member=None):
     if write:
         output = json.dumps(self.page, sort_keys=True, indent=4)
         with open('output.json', 'w') as f:
-            bomara.tools.log('Writing {} to output.json'.format(
-                self.page['Meta']['part_number']))
             f.write(output)
             f.close()
 

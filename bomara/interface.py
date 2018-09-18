@@ -3,7 +3,9 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
 
-from .vendors import apc, eaton, hmcragg, pulizzi, vertiv, servertech
+from .vendors import *
+from . import vendors
+
 from .utils import clear_output
 
 import traceback
@@ -81,7 +83,7 @@ def flash(msg):
 @socketio.on('list-crawlers')
 def list_crawlers():
     # Provide list of available crawlers to interface
-    crawlers = [filename.replace('.py', '') for filename in os.listdir(os.getcwd()+'/bomara/vendors') if filename[0] != '_' and filename[-3:] == '.py']
+    crawlers = sorted(vendors.__all__)
     socketio.emit('crawlers', crawlers)
 
 
@@ -89,7 +91,11 @@ def list_crawlers():
 def change_settings(s):
     # Wrapper for changing crawler settings
     crawl_settings[s['settings'][0]] = s['settings'][1]
-    socketio.emit('payload', '[Complete] Set {0} to {1}'.format(s['settings'][0], s['settings'][1]))
+
+    if s['settings'][0] == 'crawler':
+        socketio.emit('crawler-change', s['settings'][1])
+
+    socketio.emit('payload', '[Complete] Set {0} to {1}'.format(s['settings'][0], s['settings'][1].upper()))
 
 
 @socketio.on('run_crawler')
@@ -103,15 +109,6 @@ def handle_clear():
     clear_output()
     socketio.emit('payload', '[Complete] Cleared output folder')
     return jsonify('Cleared output')
-
-
-@app.route('/logs')
-def handle_log():
-    with open('crawler.log', 'r+') as logs:
-        log = reversed(logs.readlines())
-        logs.close()
-    return render_template('logs.html', log=log)
-
 
 def run():
     socketio.run(app)
