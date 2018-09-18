@@ -4,12 +4,15 @@ Web interface that converts data sheets from various vendors websites to HTML te
 
 Currently written for Python 3.7.0
 
+Note: Only Servertech uses pdf2image/poppler
+
 ## Supported vendors:
 * APC
 * Vertiv 
 * Eaton
 * Pulizzi (powerquality.eaton.com)
 * HM Cragg
+* Servertech
 
 ## How to use
 ```
