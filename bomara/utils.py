@@ -3,6 +3,7 @@
 import os
 import datetime
 import bomara.crawler
+import bomara.vendors 
 
 def clear_output():
     if os.path.isdir('output/'):
@@ -18,12 +19,9 @@ def clear_output():
     else:
         os.makedirs('output/')
 
-def process_family_links(vendor, part_list, family_name, family_description):
-    # Specific to Vertiv crawler
-    part_numbers = []
-    part_descriptions = []
-    part_names = []
+def process_family_links(vendor, packages):
     if vendor == 'Vertiv':
+        # Deprecated
         scraper = bomara.vendors.vertiv.crawler()
         for link in part_list:
             scraper.reset()
@@ -35,3 +33,21 @@ def process_family_links(vendor, part_list, family_name, family_description):
             part_descriptions.append(scraper.page['Meta']['includes'])
             part_names.append(scraper.page['Meta']['description'])
         return list(zip(part_numbers, part_descriptions, part_names))
+    elif vendor == 'Servertech':
+        for part in packages:
+            scraper = bomara.vendors.servertech.family_crawler
+            scraper.reset()
+            scraper.page['Meta']['part_number'] = part['number']
+            scraper.page['img_url'] = None
+            scraper.page['img_type'] = None
+
+            scraper.page['Meta']['description'] = part['description']
+
+            scraper.page['Headers'].append('General Specifications')
+
+            for spec in part['product_specs']:
+                scraper.page['Techspecs'].append(spec)
+                scraper.page['Headers'].append('*')
+
+            scraper.apply(parse=False, dl_img=False)
+
