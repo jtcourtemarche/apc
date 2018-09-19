@@ -19,6 +19,12 @@ def clear_output():
     else:
         os.makedirs('output/')
 
+def log(filename):
+    with open('crawler.log', 'a') as f:
+        f.write(filename)
+        f.close()
+
+
 def process_family_links(vendor, packages):
     if vendor == 'Vertiv':
         # Deprecated

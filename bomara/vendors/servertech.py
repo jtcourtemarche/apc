@@ -18,8 +18,12 @@ def parse(self):
     self.page['Meta']['includes'] = self.soup.find('div', id="panel1a").get_text()
 
     # Product image
-    self.page['Meta']['img_url'] = self.soup.find_all('img',
-        class_='lazyOwl')[0].get('data-src')
+
+    try:
+        self.page['Meta']['img_url'] = self.soup.find_all('img',
+            class_='lazyOwl')[0].get('data-src')
+    except:
+        self.page['Meta']['img_url'] = None
 
     self.page['Meta']['img_type'] = '.png'
 

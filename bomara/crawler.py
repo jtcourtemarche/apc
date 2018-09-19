@@ -7,6 +7,7 @@ import os
 import copy
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
+from .utils import log
 
 #
 # Crawler()
@@ -211,4 +212,5 @@ class Crawler:
             t.write(template)
             t.close()
 
+        log(self.page['Meta']['part_number'])
         return self.page['Meta']['part_number']
