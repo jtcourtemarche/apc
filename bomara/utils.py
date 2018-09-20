@@ -25,7 +25,7 @@ def log(filename):
         f.close()
 
 
-def process_family_links(vendor, packages):
+def process_family_links(vendor, packages, breadcrumbs):
     if vendor == 'Vertiv':
         # Deprecated
         scraper = bomara.vendors.vertiv.crawler()
@@ -40,12 +40,14 @@ def process_family_links(vendor, packages):
             part_names.append(scraper.page['Meta']['description'])
         return list(zip(part_numbers, part_descriptions, part_names))
     elif vendor == 'Servertech':
+        # Append two empty values to change later
+        breadcrumbs.append('')
+        breadcrumbs.append('')
         for part in packages:
             scraper = bomara.vendors.servertech.family_crawler
             scraper.reset()
             scraper.page['Meta']['part_number'] = part['number']
             scraper.page['img_url'] = None
-            scraper.page['img_type'] = None
 
             scraper.page['Meta']['description'] = part['description']
 
@@ -55,5 +57,11 @@ def process_family_links(vendor, packages):
                 scraper.page['Techspecs'].append(spec)
                 scraper.page['Headers'].append('*')
 
-            scraper.apply(parse=False, dl_img=False)
+            breadcrumbs[-2] = part['family']
+            breadcrumbs[-1] = '{}.htm'.format(part['family']) 
+
+            scraper.page['Meta']['family_num'] = part['family']
+            scraper.page['Meta']['img_type'] = '.png'
+
+            scraper.apply(parse=False, dl_img=False, breadcrumbs=breadcrumbs)
 

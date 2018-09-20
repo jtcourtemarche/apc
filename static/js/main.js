@@ -2,10 +2,36 @@ var socket = io.connect('ws://' + document.domain + ':' + location.port);
 
 var $form = $('#apc-form');
 
+window.onload = function() {
+    // Generate breadcrumb forms
+    var i;
+    var html = ""
+    for (i=0; i<=5; i++) {
+        html += '<tr><td><input type="text" id="breadcrumb-'+i+'-title" placeholder="Title"></td><td><input type="text" id="breadcrumb-'+i+'-link" placeholder="Link"></td></tr>';
+    }
+    $('.breadcrumbs').html(html);
+}
+
 $form.submit(function() {
-    socket.emit('run_crawler', {data:$form.serializeArray()})
-    $('textarea').prop('disabled', true);
-    return false;
+    if ($('textarea').val() == '') {
+        return false;
+    } else {
+        var breadcrumbs = [];
+        for (i=0; i<=5; i++) {
+            var title = $('#breadcrumb-'+i+'-title').val();
+            var link = $('#breadcrumb-'+i+'-link').val();
+        
+            if (title == '') {
+                break;
+            } else {
+                breadcrumbs.push(title, link);
+            }
+        }
+
+        socket.emit('run_crawler', {data:$form.serializeArray(), breadcrumbs:breadcrumbs})
+        $('textarea').prop('disabled', true);
+        return false;
+    }
 });
 
 socket.on('payload', function(data) {
@@ -31,6 +57,7 @@ $('#clear_output_button').click(function() {
 });
 
 socket.on('crawler-change', function(crawler) {
+    $('#output-log').empty();
     $('.crawler').html(crawler.toUpperCase());
 });
 

@@ -68,7 +68,6 @@ class Crawler:
 
         # Constants
         self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-        # Not currently supported
         self.breadcrumbs = None
 
         self.reset()
@@ -149,7 +148,8 @@ class Crawler:
         # Return last string for single usage
         return string
 
-    def apply(self, template='base.html', write=False, parse=True, dl_img=True):
+    def apply(self, template='base.html', write=False, parse=True, dl_img=True, breadcrumbs=None):
+        self.breadcrumbs = breadcrumbs
         if parse:
             try:
                 self.parse(self)
@@ -180,14 +180,15 @@ class Crawler:
                 self.parser_warning = str(img)
 
         # Breadcrumbs 
-        if self.breadcrumbs:
+        if breadcrumbs:
+            print(self.breadcrumbs)
             try:
-                breadcrumbs = ["<a href='{0}'>{1}</a> » ".format(x[1], x[0]) for x in self.breadcrumbs]
+                breadcrumbs = ["<a href='{0}'>{1}</a> » ".format(x[1], self.breadcrumbs[x[0]]) for x in enumerate(self.breadcrumbs[1::2])]
                 self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
+                print(breadcrumbs)
             except Exception as e:
                 self.parser_warning(f'Invalid breadcrumbs {e}')
                 breadcrumbs = None
-
         self.env = Environment(
             loader=PackageLoader('bomara', '../templates'),
             autoescape=True

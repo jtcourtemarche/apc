@@ -48,6 +48,7 @@ def parse(self):
 
         product_pkg = {
             'number': part_num,
+            'family': self.page['Meta']['part_number'],
             'description': part_description,
             'product_specs': []
         }
@@ -62,7 +63,7 @@ def parse(self):
 
         packages.append(product_pkg)
 
-    bomara.utils.process_family_links('Servertech', packages)
+    bomara.utils.process_family_links('Servertech', packages, self.breadcrumbs)
 
     # Family Specs
     self.page['Headers'].append('Family Specifications')

@@ -35,6 +35,7 @@
 				height: 80vh;
 				width: 500px;
 				font-size: 12px;
+				font-family: monospace;
 			}
 		</style>
 		<div class='banner'>
@@ -50,10 +51,13 @@
 							<textarea style='font-size: 12px; font-family: monospace;' class='form-control' rows=15 name='links'></textarea>
 							<br />
 							<input type='submit' value='Run' class='btn btn-primary'></input>
-							<button id='clear_button' type="button" class='btn btn-secondary'>Clear</button>
-							<button type="button" type="button" class="btn btn-secondary" data-toggle="modal" data-target="#settings-modal">
-								Settings
+							<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							   Select a crawler
 							</button>
+							<button id='clear_button' type="button" class='btn btn-secondary'>Clear</button>
+							<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+							</div>
+							<button id='clear_output_button' class='btn btn-secondary'>Clear Output Folder</button>
 						</div>
 					</form>
 				</div>
@@ -61,43 +65,19 @@
 					<div id='output-log'></div>
 				</div>
 			</div>
-		</div>	
-
-		<div class="modal fade" id="settings-modal">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h4 class="modal-title">Settings</h4>
-					</div>
-					<div class="modal-body">
-						<table>
-							<tr>
-								<td>
-									<button id='clear_output_button' class='btn btn-secondary'>Clear Output Folder</button>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<div class="dropdown">
-									  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									    Select a crawler
-									  </button>
-									  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-									  </div>
-									</div>
-								</td>
-							</tr>
-						</table>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-primary" data-dismiss="modal">
-							Close
-						</button>
-					</div>
-				</div>
+			<div class="row" style="margin-left: 5px">
+				<h4>Breadcrumbs</h4>
+				<br/>
+				<h6>*Link to index page is automatically detected</h6>
 			</div>
-		</div>
-
+			<div class="row" style="margin-left: 5px">
+				<table class="breadcrumbs">
+					<tr>
+						<td><input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1"></td>
+					</tr>
+				</table>
+			</div>
+		</div>	
 		<script type="text/javascript" src="../static/js/main.js"></script>
 	</body>
 </html>

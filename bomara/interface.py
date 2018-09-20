@@ -40,7 +40,7 @@ crawl_settings = {
 def index():
     return render_template('interface.html')
 
-def run_crawler(link, crawler):
+def run_crawler(link, crawler, breadcrumbs=None):
     # Remove anchor from link
     link = link.split('#')[0]
 
@@ -60,6 +60,7 @@ def run_crawler(link, crawler):
         part_num = crawler.apply(
             write=crawl_settings['write'],
             template=crawl_settings['template'],
+            breadcrumbs=breadcrumbs
         )
     except Exception as e:
         trace = traceback.format_exc().replace(' File ', '<br/><br/>')
@@ -99,10 +100,17 @@ def change_settings(s):
 
 
 @socketio.on('run_crawler')
-def handle_run(form):
-    form = form['data'][0]['value']
+def handle_run(args):
+    form = args['data']
+
+    form = form[0]['value']
+
+    breadcrumbs = None
     
-    [run_crawler(link, eval('{}.crawler'.format(crawl_settings['crawler']))) for link in form.splitlines()]
+    if args['breadcrumbs']:
+        breadcrumbs = args['breadcrumbs']
+
+    [run_crawler(link, eval('{}.crawler'.format(crawl_settings['crawler'])), breadcrumbs) for link in form.splitlines()]
 
 @app.route('/clear', methods=['POST'])
 def handle_clear():
