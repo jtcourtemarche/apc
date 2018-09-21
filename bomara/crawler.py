@@ -68,7 +68,7 @@ class Crawler:
 
         # Constants
         self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-        self.breadcrumbs = None
+        self.breadcrumbs = []
 
         self.reset()
 
@@ -180,7 +180,7 @@ class Crawler:
                 self.parser_warning = str(img)
 
         # Breadcrumbs 
-        if breadcrumbs:
+        if breadcrumbs != []:
             print(self.breadcrumbs)
             try:
                 breadcrumbs = ["<a href='{0}'>{1}</a> » ".format(x[1], self.breadcrumbs[x[0]]) for x in enumerate(self.breadcrumbs[1::2])]
@@ -188,7 +188,7 @@ class Crawler:
                 print(breadcrumbs)
             except Exception as e:
                 self.parser_warning(f'Invalid breadcrumbs {e}')
-                breadcrumbs = None
+                breadcrumbs = []
         self.env = Environment(
             loader=PackageLoader('bomara', '../templates'),
             autoescape=True

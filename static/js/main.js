@@ -7,7 +7,7 @@ window.onload = function() {
     var i;
     var html = ""
     for (i=0; i<=5; i++) {
-        html += '<tr><td><input type="text" id="breadcrumb-'+i+'-title" placeholder="Title"></td><td><input type="text" id="breadcrumb-'+i+'-link" placeholder="Link"></td></tr>';
+        html += '<tr><td><input type="text" id="breadcrumb-'+i+'-title" placeholder="Title #'+i+'"></td><td><input type="text" id="breadcrumb-'+i+'-link" placeholder="Link #'+i+'"></td></tr>';
     }
     $('.breadcrumbs').html(html);
 }
