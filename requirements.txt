@@ -1,6 +1,6 @@
 beautifulsoup4==4.6.3
 bs4==0.0.1
-click==6.7
+click==7.0
 Flask==1.0.2
 Flask-SocketIO==3.0.2
 itsdangerous==0.24
