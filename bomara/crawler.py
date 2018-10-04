@@ -181,9 +181,8 @@ class Crawler:
 
         # Breadcrumbs 
         if breadcrumbs != []:
-            print(self.breadcrumbs)
             try:
-                breadcrumbs = ["<a href='{0}'>{1}</a> » ".format(x[1], self.breadcrumbs[x[0]]) for x in enumerate(self.breadcrumbs[1::2])]
+                breadcrumbs = ["<a href='{0}'>{1}</a> » ".format(x[1], self.breadcrumbs[x[0]+1]) for x in enumerate(self.breadcrumbs[1::2])]
                 self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
                 print(breadcrumbs)
             except Exception as e:

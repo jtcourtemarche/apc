@@ -62,8 +62,11 @@ def parse(self):
             product_pkg['product_specs'].append((spec_title.replace(':', ''), spec_description))
 
         packages.append(product_pkg)
-
     bomara.utils.process_family_links('Servertech', packages, breadcrumbs=self.breadcrumbs)
+
+    self.breadcrumbs = self.breadcrumbs[:-1]
+
+    print(self.breadcrumbs)
 
     # Family Specs
     self.page['Headers'].append('Family Specifications')

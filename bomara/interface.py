@@ -40,7 +40,7 @@ crawl_settings = {
 def index():
     return render_template('interface.html')
 
-def run_crawler(link, crawler, breadcrumbs=None):
+def run_crawler(link, crawler, breadcrumbs=[]):
     # Remove anchor from link
     link = link.split('#')[0]
 
@@ -105,7 +105,7 @@ def handle_run(args):
 
     form = form[0]['value']
 
-    breadcrumbs = None
+    breadcrumbs = []
     
     if args['breadcrumbs']:
         breadcrumbs = args['breadcrumbs']
