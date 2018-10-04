@@ -64,9 +64,7 @@ def parse(self):
     bomara.utils.process_family_links('Servertech', packages, breadcrumbs=self.breadcrumbs)
 
     # Remove family link for family page
-    self.breadcrumbs = self.breadcrumbs[:-1]
-
-    print(self.breadcrumbs)
+    self.breadcrumbs = self.breadcrumbs[:-2]
 
     # Family Specs
     self.page['Headers'].append('Family Specifications')

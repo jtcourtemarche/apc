@@ -119,7 +119,7 @@ class Crawler:
                 # Copy to proper name
                 copyfile(pdf[0].fp.name, 'output/images/' + file_name)
                 
-                drawing = f'<img href="images/{file_name}" class="display-image-1_5"></img>'
+                drawing = f'<img src="images/{file_name}" width="400" class="display-image"></img>'
 
                 return drawing
 
@@ -207,7 +207,8 @@ class Crawler:
         # Breadcrumbs 
         if breadcrumbs != []:
             try:
-                breadcrumbs = ["<a href='{0}'>{1}</a> » ".format(x[1], self.breadcrumbs[x[0]+1]) for x in enumerate(self.breadcrumbs[1::2])]
+                # Iterate through every 2 items in self.breadcrumbs
+                breadcrumbs = [f"<a href='{self.breadcrumbs[x+1]}'>{self.breadcrumbs[x]}</a> » " for x in range(0, len(self.breadcrumbs), 2)]
                 self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
             except Exception as e:
                 self.parser_warning(f'Invalid breadcrumbs {e}')
