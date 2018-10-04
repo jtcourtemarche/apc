@@ -29,7 +29,7 @@ socketio = SocketIO(app)
     
 crawl_settings = {
     # Write output to JSON
-    'write': False,
+    'write': True,
     # Template filename
     'template': 'base.html',
     # Default crawler

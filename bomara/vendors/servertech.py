@@ -3,7 +3,6 @@ import urllib
 import os
 import subprocess
 import bomara.utils
-from pdf2image import convert_from_path
 from bs4 import BeautifulSoup
 
 def parse(self):
@@ -64,6 +63,7 @@ def parse(self):
         packages.append(product_pkg)
     bomara.utils.process_family_links('Servertech', packages, breadcrumbs=self.breadcrumbs)
 
+    # Remove family link for family page
     self.breadcrumbs = self.breadcrumbs[:-1]
 
     print(self.breadcrumbs)
@@ -73,16 +73,11 @@ def parse(self):
 
     # Get drawing 
     if panel1d != None and panel1d.find('a') != None:
-        self.dl_img(
+        drawing = self.dl_img(
             url=panel1d.find('a').get('href'),
             img_type='.pdf',
             name=self.page['Meta']['part_number'] + '-drawing'
         )
-        pdf = convert_from_path('output/images/{}-drawing.pdf'.format(self.page['Meta']['part_number']), last_page=1, output_folder='output/images/', fmt='jpg')
-
-        os.remove('output/images/{}-drawing.pdf'.format(self.page['Meta']['part_number']))
-
-        drawing = '<img href="images/{}" class="display-image-1_5"></img>'.format(pdf[0].fp.name.replace('output/images/', ''))
 
         self.page['Techspecs'].append(('Drawing', drawing))
 

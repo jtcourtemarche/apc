@@ -8,6 +8,8 @@ import copy
 from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from bs4 import BeautifulSoup
 from .utils import log
+from pdf2image import convert_from_path
+from shutil import copyfile
 
 #
 # Crawler()
@@ -98,6 +100,29 @@ class Crawler:
             with open('output/images/{0}{1}'.format(name, img_type), 'wb') as img_f:
                 img_f.write(data.read())
                 img_f.close()
+            
+            if img_type == '.pdf':
+                # PDF Conversion
+                pdf = convert_from_path('output/images/{}-drawing.pdf'.format(self.page['Meta']['part_number']), last_page=1, output_folder='output/images/', fmt='jpg')
+                os.remove('output/images/{}-drawing.pdf'.format(self.page['Meta']['part_number']))
+                # Rename random string filename to part number
+                file_name = self.page['Meta']['part_number'] + '-drawing'
+
+                # Append number saying which number drawing it is from the family
+                n = os.listdir('output/images').count(file_name)
+
+                if n != 0:
+                    file_name = file_name + str(n) + self.page['Meta']['img_type']
+                else:
+                    file_name = file_name + self.page['Meta']['img_type']
+
+                # Copy to proper name
+                copyfile(pdf[0].fp.name, 'output/images/' + file_name)
+                
+                drawing = f'<img href="images/{file_name}" class="display-image-1_5"></img>'
+
+                return drawing
+
             return True
         except urllib.error.URLError:
             return "Error loading image URL"
@@ -184,7 +209,6 @@ class Crawler:
             try:
                 breadcrumbs = ["<a href='{0}'>{1}</a> » ".format(x[1], self.breadcrumbs[x[0]+1]) for x in enumerate(self.breadcrumbs[1::2])]
                 self.page['Meta']['breadcrumbs'] = ''.join(breadcrumbs)
-                print(breadcrumbs)
             except Exception as e:
                 self.parser_warning(f'Invalid breadcrumbs {e}')
                 breadcrumbs = []
