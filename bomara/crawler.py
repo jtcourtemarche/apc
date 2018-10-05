@@ -226,7 +226,13 @@ class Crawler:
         if 'Options' not in self.schema:
             self.page['Options'] = False
 
-        with open('output/{}.htm'.format(self.page['Meta']['part_number']), 'wb') as t:
+        if '/' in self.page['Meta']['part_number']:
+            output_name = self.page['Meta']['part_number'].replace('/', '-')
+        else:
+            output_name = self.page['Meta']['part_number']
+
+
+        with open(f'output/{output_name}.htm', 'wb') as t:
             try:
                 template = self.env.get_template(template)
             except Exception as e:
