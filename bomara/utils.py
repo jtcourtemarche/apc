@@ -19,9 +19,20 @@ def clear_output():
     else:
         os.makedirs('output/')
 
+def clear_img_cache():
+    if os.path.isdir('output/'):
+        for image in os.listdir('output/images/'):
+            if image[:3] == '.jpg' and '-drawing' not in image:
+                os.remove('output/images/'+image)
+    else:
+        os.makedirs('output/')
+
 def log(filename):
-    with open('crawler.log', 'a') as f:
-        f.write(filename)
+    with open('crawler.log', 'r') as f:
+        if filename not in f.read():
+            with open('crawler.log', 'a') as a:
+                a.write(filename + '\n')
+                a.close()
         f.close()
 
 
@@ -43,13 +54,17 @@ def process_family_links(vendor, packages, breadcrumbs):
         # Append two empty values to change later
         breadcrumbs.append('')
         breadcrumbs.append('')
+
+        scraper = bomara.vendors.servertech.family_crawler
         for part in packages:
-            scraper = bomara.vendors.servertech.family_crawler
             scraper.reset()
             scraper.page['Meta']['part_number'] = part['number']
             scraper.page['img_url'] = None
 
-            scraper.page['Meta']['description'] = part['description']
+            if part['description'].strip():
+                scraper.page['Meta']['description'] = part['description']
+            else:
+                scraper.page['Meta']['includes'] = part['number']
 
             scraper.page['Headers'].append('General Specifications')
 
@@ -57,11 +72,12 @@ def process_family_links(vendor, packages, breadcrumbs):
                 scraper.page['Techspecs'].append(spec)
                 scraper.page['Headers'].append('*')
 
-            breadcrumbs[-2] = part['family']
-            breadcrumbs[-1] = '{}.htm'.format(part['family']) 
+            scraper.breadcrumbs = breadcrumbs
+            scraper.breadcrumbs[-2] = part['family']
+            scraper.breadcrumbs[-1] = '{}.htm'.format(part['family']) 
 
             scraper.page['Meta']['family_num'] = part['family']
             scraper.page['Meta']['img_type'] = '.png'
 
-            scraper.apply(parse=False, dl_img=False, breadcrumbs=breadcrumbs)
+            scraper.apply(parse=False, dl_img=False)
 
