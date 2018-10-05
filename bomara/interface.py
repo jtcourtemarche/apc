@@ -6,7 +6,7 @@ from flask_socketio import SocketIO, emit
 from .vendors import *
 from . import vendors
 
-from .utils import clear_output
+from .utils import clear_output, clear_img_cache
 
 import traceback
 import os
@@ -40,10 +40,11 @@ crawl_settings = {
 def index():
     return render_template('interface.html')
 
-def run_crawler(link, crawler, breadcrumbs=[]):
+def run_crawler(link, crawler, breadcrumbs):
     # Remove anchor from link
     link = link.split('#')[0]
 
+    crawler = eval(crawler+'.crawler') 
     crawler.reset()
 
     socketio.emit('payload', 'Loading <a href="' +
@@ -98,19 +99,26 @@ def change_settings(s):
 
     socketio.emit('payload', '[Complete] Set {0} to {1}'.format(s['settings'][0], s['settings'][1].upper()))
 
+@socketio.on('clear_img_cache')
+def clear_image_cache():
+    clear_image_cache()
+    socketio.emit('payload', '[Complete] Cleared image cache')
+    return jsonify('Cleared output')
 
 @socketio.on('run_crawler')
 def handle_run(args):
     form = args['data']
-
     form = form[0]['value']
 
-    breadcrumbs = []
-    
-    if args['breadcrumbs']:
-        breadcrumbs = args['breadcrumbs']
+    b = args['breadcrumbs']
 
-    [run_crawler(link, eval('{}.crawler'.format(crawl_settings['crawler'])), breadcrumbs) for link in form.splitlines()]
+    for link in form.splitlines():
+        breadcrumbs = b.copy()
+        run_crawler(
+            link,
+            crawl_settings['crawler'], 
+            breadcrumbs,
+        )
 
 @app.route('/clear', methods=['POST'])
 def handle_clear():

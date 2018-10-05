@@ -55,6 +55,9 @@ $('#clear_button').click(function() {
 $('#clear_output_button').click(function() {
     $.post('/clear'); 
 });
+$('#clear_cache_button').click(function() {
+    socket.emit('clear_img_cache');
+})
 
 socket.on('crawler-change', function(crawler) {
     $('#output-log').empty();

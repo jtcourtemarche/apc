@@ -14,10 +14,10 @@ def parse(self):
     self.page['Meta']['part_number'] = breadcrumbs.find_all('li')[-1].get_text().replace('  ', '')
 
     # Full description
-    self.page['Meta']['includes'] = self.soup.find('div', id="panel1a").get_text()
+    # -> gets first sentence
+    self.page['Meta']['includes'] = self.soup.find('div', id="panel1a").get_text().split('.')[0]
 
     # Product image
-
     try:
         self.page['Meta']['img_url'] = self.soup.find_all('img',
             class_='lazyOwl')[0].get('data-src')
@@ -36,9 +36,12 @@ def parse(self):
     panel1d = self.soup.find('div', id='panel1d', class_='content')
 
     packages = []
-    for product in panel1c.find_all(class_='column'):
-        header = product.find('thead')    
-        title = header.find('th', class_='m-title').get_text()
+    for product in panel1c.find_all('table'):
+        try:
+            header = product.find('thead')   
+            title = header.find('th', class_='m-title').get_text()
+        except:
+            break
 
         part_num = title.split('(')[0].replace(' ', '').replace('\n', '').replace(u'\u2605', '')
         part_description = str(title.split(')')[1].replace('  ', '').replace('\n', '').replace(u'\u2605', ''))
@@ -61,13 +64,17 @@ def parse(self):
             product_pkg['product_specs'].append((spec_title.replace(':', ''), spec_description))
 
         packages.append(product_pkg)
+        self.page['Headers'].append('*')
+
+    # Family specs
+    self.page['Headers'][-1] = 'Family Specifications'
+    self.page['Headers'].append('*')
+    
+    # Process family
     bomara.utils.process_family_links('Servertech', packages, breadcrumbs=self.breadcrumbs)
 
     # Remove family link for family page
     self.breadcrumbs = self.breadcrumbs[:-2]
-
-    # Family Specs
-    self.page['Headers'].append('Family Specifications')
 
     # Get drawing 
     if panel1d != None and panel1d.find('a') != None:

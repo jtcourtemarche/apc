@@ -83,6 +83,8 @@ class Crawler:
         self.ignored_headers = self._ignored_headers
         self.software_identifiers = self._software_identifiers
 
+        self.breadcrumbs = []
+
         self.parse = self._parser
         self.soup = None
 
@@ -174,7 +176,9 @@ class Crawler:
         return string
 
     def apply(self, template='base.html', write=False, parse=True, dl_img=True, breadcrumbs=None):
-        self.breadcrumbs = breadcrumbs
+        if breadcrumbs:
+            self.breadcrumbs = breadcrumbs
+
         if parse:
             try:
                 self.parse(self)
