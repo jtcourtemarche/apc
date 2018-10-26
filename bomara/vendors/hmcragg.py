@@ -70,7 +70,7 @@ def parse(self):
 
 crawler = Crawler(
     # Vendor name
-    vendor = 'Pulizzi',
+    vendor = 'HMCragg',
     schema = {
         # Required
         'Meta': dict(),

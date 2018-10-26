@@ -99,6 +99,8 @@ class Crawler:
             if not os.path.exists('output/images'):
                 os.makedirs('output/images')
 
+            name = name.replace(' ', '').replace('/', '-')
+
             with open('output/images/{0}{1}'.format(name, img_type), 'wb') as img_f:
                 img_f.write(data.read())
                 img_f.close()
