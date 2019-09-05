@@ -3,72 +3,50 @@ import re
 
 def parser(self):
     # Get description & part number ---------------------------------->
-    self.page['Meta']['description'] = self.soup.find(
-        class_='page-header').get_text()
-    self.page['Meta']['part_number'] = self.soup.find(
-        class_='part-number').get_text()
+    features = self.soup.find('div', id='features').find('div', class_='features__info').find_all('div')
+    if len(features) > 1:
+        self.page['Meta']['description'] = features[1].get_text()
+    else:
+        self.page['Meta']['description'] = None
+
+    self.page['Meta']['part_number'] = self.soup.find('h2', class_='product-description__part-number').get_text()
 
     # Parse tech specs ---------------------------------------------->
-    page_div = self.soup.find('div', id='techspecs')
-    techspecs = []
-    for header in page_div.find_all('h4'):
-        cheader = header.contents[0]
-        cheader = cheader.replace('&amp;', '&')
+    techspecs_container = self.soup.find('div', class_='pd-tabs__tab', id='technical_specification')
 
-        if self.page['Headers'] != []:
-            self.page['Headers'][len(self.page['Headers'])-1] = cheader
-            self.page['Techspecs'].append('*')
-        else:
-            self.page['Headers'].append(cheader)
-            self.page['Techspecs'].append('*')
+    self.page['Headers'] = []
 
-        list_item = header.find_next_sibling('ul', class_='table-normal')
-        for contents in list_item.find_all(class_='col-md-12'):
-            for title in contents.find(class_='col-md-3 bold'):
-                # Checks title filters
-                if filter(lambda x: x in title, self.ignored_headers):
-                    continue
+    for section in techspecs_container.find_all('div', class_='technical-specification-tab'):
+        self.page['Headers'].append(
+            section.find('div', class_='technical-specification-tab__header').get_text()
+        )
 
-                contents = contents.get_text(
-                    ' ', strip=True).replace(title, '').replace('\n', '')
+        rows = section.find_all('div', class_='technical-content-block')
 
-                self.page['Techspecs'].append((title, contents))
-                self.page['Headers'].append('*')
+        for row in rows:
+            title = row.find('strong', class_='technical-content-block__category').get_text()
+            description = row.find('div', class_='technical-content-block__data').get_text(strip=True)
+            description = description.replace(title, '').replace('\n', '')
+
+            # Checks title filters
+            #if filter(lambda x: x in title, self.ignored_headers):
+            #    continue
+
+            self.page['Techspecs'].append((title, description))
+            self.page['Headers'].append('*')       
 
     # Get image ---------------------------------------------------->
-    try:
-        # Newer pages
-        self.page['Meta']['img_url'] = 'http:{}'.format(
-            self.soup.find_all(class_='img-responsive')[0].get('src'))
-    except Exception:
-        # Applicable to some older pages
-        self.page['Meta']['img_url'] = 'http:{}'.format(
-            self.soup.find_all(id='DataDisplay')[0].get('src'))
+
+    self.page['Meta']['img_url'] = 'http:{}'.format(
+        self.soup.find('img', class_='product-description__main-block__image').get('src'))
 
     self.page['Meta']['img_type'] = '.jpg'
 
     # Includes ----------------------------------------------------->
-    product_overview = self.soup.find_all(id='productoverview')[0]
-
-    # Default includes to none
-    self.page['Meta']['includes'] = ''
-    try:
-        # Test for explicit reference to includes
-        # -> Usually found in older pages
-        self.page['Meta']['includes'] = self.soup.find(
-            class_='includes').get_text()
-    except Exception:
-        # Scan for includes instead
-        for p in product_overview.find_all('p'):
-            if 'Includes' in p.get_text():
-                self.page['Meta']['includes'] = p.get_text()
-                break
-
-    self.page['Meta']['includes'] = re.sub(
-        '\s\s+', ' ', self.page['Meta']['includes']).replace(' ,', ',')
+    self.page['Meta']['includes'] = self.soup.find('h1', class_='product-description-title').get_text()
 
     # Options ------------------------------------------------------->
-
+    """
     try:
         options = self.soup.find('div', id='options')
 
@@ -121,6 +99,7 @@ def parser(self):
         self.parser_warning = 'No options on this page: {}'.format(e)
 
 # ->
+"""
 
 crawler = Crawler(
     # Vendor name
